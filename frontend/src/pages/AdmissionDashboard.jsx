@@ -141,6 +141,7 @@ const AdmissionDashboardPanel = () => {
         { title: "EXAMINATION PERMIT", link: "/registrar_examination_profile", icon: Badge, page_id: 51 },
         { title: "PROCTOR'S APPLICANT LIST", link: "/proctor_applicant_list", icon: People, page_id: 37 },
         { title: "ENTRANCE EXAMINATION SCORES", link: "/applicant_scoring", icon: Score, page_id: 8 },
+        { title: "ROOM REGISTRATION", link: "/room_registration", icon: MeetingRoom, page_id: 55 },
       ],
     },
 

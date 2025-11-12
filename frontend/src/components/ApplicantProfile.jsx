@@ -52,7 +52,7 @@ const ApplicantProfile = () => {
                 const scoreRes = await axios.get(`http://localhost:5000/api/applicant-has-score/${searchQuery}`);
 
                 if (scoreRes.data.hasScore) {
-                    alert("✅ Applicant already has entrance exam score. Proceed to college admission.");
+                    alert("✅ This applicant is now qualified to take the Entrance examination");
                     setPersonId(pid);
                     return;
                 }

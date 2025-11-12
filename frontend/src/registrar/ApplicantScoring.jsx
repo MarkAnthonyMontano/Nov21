@@ -991,9 +991,10 @@ th, td {
                                     height: "40px",
                                     display: "flex",
                                     alignItems: "center",
+                                    textAlign: "center",
                                     gap: "8px",
                                     userSelect: "none",
-                                    width: "275px", // ✅ same width as Import
+                                    width: "200px", // ✅ same width as Import
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#d3d3d3"}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f0f0f0"}
@@ -1002,7 +1003,7 @@ th, td {
                                 type="button"
                             >
                                 <FcPrint size={20} />
-                                Print Entrance Examination Scores
+                                Print ECAT Score
                             </button>
                         </Box>
 

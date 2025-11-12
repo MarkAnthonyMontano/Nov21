@@ -382,45 +382,49 @@ export default function EmailTemplateManager() {
             elevation={3}
             sx={{ p: 3, border: `2px solid ${borderColor}`, borderRadius: 2 }}
           >
-            <Typography variant="h6" sx={{ mb: 2, color: "#800000" }}>
+            <Typography variant="h6" sx={{ mb: 2, color: subtitleColor, }}>
               Registered Templates
             </Typography>
 
-            <Box sx={{ maxHeight: 400, overflowY: "auto" }}>
+            <Box
+              sx={{
+                maxHeight: 400,
+                overflowY: "auto",
+                backgroundColor: settings?.table_bg_color || "#ffffff", // Table container bg
+                border: `2px solid ${borderColor}`, // Outer border
+                borderRadius: 1, // optional: rounded corners
+              }}
+            >
               <Table stickyHeader size="small">
                 <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>#</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Gmail Account</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Department</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Active</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", width: "150px" }}>Actions</TableCell>
+                  <TableRow
+                    sx={{
+                      backgroundColor: settings?.header_color || "#1976d2", // Header color from settings
+                    }}
+                  >
+                    <TableCell sx={{ fontWeight: "bold", border: `2px solid ${borderColor}` }}>#</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", border: `2px solid ${borderColor}` }}>Gmail Account</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", border: `2px solid ${borderColor}` }}>Department</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", border: `2px solid ${borderColor}` }}>Active</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", width: "150px", border: `2px solid ${borderColor}` }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
+
                 <TableBody>
                   {rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center">
+                      <TableCell colSpan={5} align="center" sx={{ border: `2px solid ${borderColor}` }}>
                         No templates found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((r, index) => (
                       <TableRow key={r.template_id}>
-                        {/* Auto-increment index */}
-                        <TableCell>{index + 1}</TableCell>
-
-                        {/* Gmail Account */}
-                        <TableCell>{r.sender_name}</TableCell>
-
-                        {/* Department Name */}
-                        <TableCell>{r.department_name || "N/A"}</TableCell>
-
-                        {/* Active */}
-                        <TableCell>{r.is_active ? "Yes" : "No"}</TableCell>
-
-                        {/* Actions */}
-                        <TableCell sx={{ width: "150px" }}>
+                        <TableCell sx={{ border: `2px solid ${borderColor}` }}>{index + 1}</TableCell>
+                        <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.sender_name}</TableCell>
+                        <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.department_name || "N/A"}</TableCell>
+                        <TableCell sx={{ border: `2px solid ${borderColor}` }}>{r.is_active ? "Yes" : "No"}</TableCell>
+                        <TableCell sx={{ width: "150px", border: `2px solid ${borderColor}` }}>
                           <Box sx={{ display: "flex", gap: 1 }}>
                             <Button
                               variant="contained"
@@ -448,14 +452,13 @@ export default function EmailTemplateManager() {
                             </Button>
                           </Box>
                         </TableCell>
-
                       </TableRow>
                     ))
                   )}
                 </TableBody>
-
               </Table>
             </Box>
+
           </Paper>
         </Grid>
       </Grid>

@@ -405,7 +405,7 @@ const CourseTagging = () => {
     } catch (error) {
       setSnack({
         open: true,
-        message: error.response?.data?.message || "Student not found",
+        message: error.response?.data?.message || "Search Student is not currently Enrolled",
         severity: "error",
       });
 

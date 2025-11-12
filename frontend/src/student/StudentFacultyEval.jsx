@@ -12,6 +12,8 @@ import {
   FormControlLabel,
   Button,
   Paper,
+  Snackbar,
+  Alert,
   TextField,
 } from "@mui/material";
 import axios from "axios";
@@ -31,6 +33,10 @@ const settings = useContext(SettingsContext);
   const [companyName, setCompanyName] = useState("");
   const [shortTerm, setShortTerm] = useState("");
   const [campusAddress, setCampusAddress] = useState("");
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
 
   useEffect(() => {
     if (!settings) return;
@@ -96,7 +102,7 @@ const settings = useContext(SettingsContext);
       );
       setQuestions(response.data);
     } catch (err) {
-      console.error("Error fetching questions:", err);
+      showSnackbar("Failed to fetch questions", "error");
     }
   };
 
@@ -108,9 +114,8 @@ const settings = useContext(SettingsContext);
       if (res.data.length > 0) {
         setStudentNumber(res.data[0].student_number);
       }
-      console.log("Courses:", res.data);
     } catch (err) {
-      console.error("Error fetching courses:", err);
+      console.log("There are no courses to be evaluated")
     }
   };
 
@@ -133,10 +138,16 @@ const settings = useContext(SettingsContext);
     (prof) => prof.course_id === selectedCourse
   );
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
   // ✅ Save evaluation for all questions
   const SaveEvaluation = async () => {
     if (!selectedProfessor) {
-      alert("Please select a course before submitting.");
+      showSnackbar("Please select a course before submitting.", "warning");
       return;
     }
 
@@ -152,13 +163,12 @@ const settings = useContext(SettingsContext);
         });
       }
 
-      alert("Evaluation submitted successfully!");
+      showSnackbar("Evaluation submitted successfully!", "success");
       setAnswers({});
       setSelectedCourse("");
       fetchCourseData(userID);
     } catch (err) {
-      console.error("Error saving evaluation:", err);
-      alert("Failed to save evaluation.");
+      showSnackbar("Failed to save evaluation.", "error");
     }
   };
 
@@ -292,6 +302,16 @@ const settings = useContext(SettingsContext);
           </Button>
         </Paper>
       )}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity={snackbarSeverity} sx={{ width: "100%" }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

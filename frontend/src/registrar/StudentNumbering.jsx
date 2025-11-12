@@ -447,7 +447,7 @@ const StudentNumbering = () => {
                     setAssignedNumber(data.student_number);
                     setSnack({
                         open: true,
-                        message: "✅ Student number assigned and email sent.",
+                        message: " Student number assigned and email sent.",
                         severity: "success",
                     });
                     fetchPersons();

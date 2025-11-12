@@ -199,7 +199,7 @@ const UserPageAccess = () => {
         <Box display="flex" alignItems="center" gap={2}>
           <TextField
             size="small"
-            placeholder="Search by Person ID"
+            placeholder="Search Employee ID"
             value={userID}
             onChange={(e) => setUserID(e.target.value)}
             sx={{

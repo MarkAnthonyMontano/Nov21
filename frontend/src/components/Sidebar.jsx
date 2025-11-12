@@ -139,7 +139,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     <div className="h-full w-enough hidden-print">
       <ul
         className="bg-white h-full p-3 px-5 text-maroon-500 w-full gap-2"
-        style={{ border: `5px solid ${borderColor}` }}
+        style={{ borderRight: `5px solid ${borderColor}` }}
       >
 
         <div className="flex items-center flex-col mt-24 mb-4 relative">
@@ -152,7 +152,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
                 border: `2px solid ${borderColor}`,
                 bgcolor: settings?.header_color || "#1976d2",
                 color: "#ffffff",
-                marginBottom: "25px",
+                marginBottom: "15px",
               }}
             />
           ) : (

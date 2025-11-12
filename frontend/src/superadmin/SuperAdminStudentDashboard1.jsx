@@ -1029,7 +1029,6 @@ const SuperAdminStudentDashboard1 = () => {
                 <Box
                     sx={{
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "center",
                         width: "100%",
                         mt: 2,
@@ -1045,7 +1044,8 @@ const SuperAdminStudentDashboard1 = () => {
                             backgroundColor: "#fffaf5",
                             border: "1px solid #6D2323",
                             boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-                            whiteSpace: "nowrap", // Prevent text wrapping
+                            width: "100%",
+                            overflow: "hidden",
                         }}
                     >
                         {/* Icon */}
@@ -1054,32 +1054,35 @@ const SuperAdminStudentDashboard1 = () => {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                backgroundColor: "#6D2323",
+                                backgroundColor: "#800000",
                                 borderRadius: "8px",
                                 width: 50,
                                 height: 50,
                                 flexShrink: 0,
                             }}
                         >
-                            <ErrorIcon sx={{ color: "white", fontSize: 40 }} />
+                            <ErrorIcon sx={{ color: "white", fontSize: 36 }} />
                         </Box>
 
                         {/* Text */}
                         <Typography
                             sx={{
-                                fontSize: "15px",
+                                fontSize: "20px",
                                 fontFamily: "Arial",
                                 color: "#3e3e3e",
+                                lineHeight: 1.3, // slightly tighter to fit in fewer rows
+                                whiteSpace: "normal",
+                                overflow: "hidden",
                             }}
                         >
                             <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
-
                             <strong>1.</strong> Kindly type <strong>'NA'</strong> in boxes where there are no possible answers to the information being requested. &nbsp; | &nbsp;
                             <strong>2.</strong> To use the letter <strong>'Ñ'</strong>, press <kbd>ALT</kbd> + <kbd>165</kbd>; for <strong>'ñ'</strong>, press <kbd>ALT</kbd> + <kbd>164</kbd>. &nbsp; | &nbsp;
-                            <strong>3.</strong> List of all printable files
+                            <strong>3.</strong> This is the list of all printable files.
                         </Typography>
                     </Box>
                 </Box>
+
 
                 {/* Cards Section */}
                 <Box

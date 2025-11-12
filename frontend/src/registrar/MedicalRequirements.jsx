@@ -896,6 +896,7 @@ const MedicalRequirements = () => {
                                 </Button>
 
                                 <Button
+                                disabled
                                     onClick={() => handleConfirmDelete(uploaded)}
                                     sx={{
                                         backgroundColor: uploaded.canDelete ? 'maroon' : 'lightgray',

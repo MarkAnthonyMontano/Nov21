@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
 import {
+    Box,
     Button,
     TextField,
     Input,
     InputLabel,
     Typography,
     Paper,
-    Box,
     Divider,
     Snackbar,
     Alert,
@@ -18,37 +18,40 @@ import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 function Settings({ onUpdate }) {
+    const settings = useContext(SettingsContext);
 
-    // User states
-    const [userID, setUserID] = useState("");
-    const [user, setUser] = useState("");
-    const [userRole, setUserRole] = useState("");
+    // Left side: School info
+    const [companyName, setCompanyName] = useState("");
+    const [shortTerm, setShortTerm] = useState("");
+    const [address, setAddress] = useState("");
+    const [logo, setLogo] = useState(null);
+    const [previewLogo, setPreviewLogo] = useState(null);
+    const [bgImage, setBgImage] = useState(null);
+    const [previewBg, setPreviewBg] = useState(null);
+    const [footerText, setFooterText] = useState("");
+
+    // Right side: Colors
+    const [headerColor, setHeaderColor] = useState("#ffffff");
+    const [footerColor, setFooterColor] = useState("#ffffff");
+    const [mainButtonColor, setMainButtonColor] = useState("#ffffff");
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff");
+    const [borderColor, setBorderColor] = useState("#000000");
+    const [titleColor, setTitleColor] = useState("#000000");
+    const [subtitleColor, setSubtitleColor] = useState("#555555");
+
+    const [snack, setSnack] = useState({ open: false, message: "", severity: "info" });
+    const handleCloseSnack = (_, reason) => { if (reason !== "clickaway") setSnack(prev => ({ ...prev, open: false })); };
 
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
-
     const pageId = 77;
 
-    const [employeeID, setEmployeeID] = useState("");
-
     useEffect(() => {
-
-        const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
-        const storedID = localStorage.getItem("person_id");
         const storedEmployeeID = localStorage.getItem("employee_id");
 
-        if (storedUser && storedRole && storedID) {
-            setUser(storedUser);
-            setUserRole(storedRole);
-            setUserID(storedID);
-            setEmployeeID(storedEmployeeID);
-
-            if (storedRole === "registrar") {
-                checkAccess(storedEmployeeID);
-            } else {
-                window.location.href = "/login";
-            }
+        if (storedRole === "registrar") {
+            checkAccess(storedEmployeeID);
         } else {
             window.location.href = "/login";
         }
@@ -57,186 +60,76 @@ function Settings({ onUpdate }) {
     const checkAccess = async (employeeID) => {
         try {
             const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-            if (response.data && response.data.page_privilege === 1) {
-                setHasAccess(true);
-            } else {
-                setHasAccess(false);
-            }
-        } catch (error) {
-            console.error('Error checking access:', error);
+            setHasAccess(response.data?.page_privilege === 1);
+        } catch {
             setHasAccess(false);
-            if (error.response && error.response.data.message) {
-                console.log(error.response.data.message);
-            } else {
-                console.log("An unexpected error occurred.");
-            }
-            setLoading(false);
         }
     };
 
-    // Settings states
-    const [companyName, setCompanyName] = useState("");
-    const [address, setAddress] = useState("");
-    const [logo, setLogo] = useState(null);
-    const [previewLogo, setPreviewLogo] = useState(null);
-    const [bgImage, setBgImage] = useState(null);
-    const [previewBg, setPreviewBg] = useState(null);
-    const [headerColor, setHeaderColor] = useState("#ffffff");
-    const [footerText, setFooterText] = useState("");
-    const [footerColor, setFooterColor] = useState("#ffffff");
-
-
-    // ✅ NEW COLOR STATES
-    const [mainButtonColor, setMainButtonColor] = useState("#ffffff");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff");
-
-    const [borderColor, setBorderColor] = useState("#000000");
-
-    const [titleColor, setTitleColor] = useState("#000000");
-    const [subtitleColor, setSubtitleColor] = useState("#555555");
-
-
-
-    const [snack, setSnack] = useState({
-        open: false,
-        message: "",
-        severity: "info",
-    });
-
-    const handleCloseSnack = (_, reason) => {
-        if (reason === "clickaway") return;
-        setSnack((prev) => ({ ...prev, open: false }));
-    };
-
-    // ✅ Fetch settings (including short_term)
     useEffect(() => {
-        axios
-            .get("http://localhost:5000/api/settings")
-            .then((response) => {
-                const {
-                    company_name,
-                    short_term,
-                    address,
-                    logo_url,
-                    bg_image,
-                    header_color,
-                    footer_text,
-                    footer_color,
-                    main_button_color,
-                    sub_button_color,
-                    border_color,
-
-                    font_theme_color,
-                    title_color,
-                    subtitle_color
-                } = response.data;
-
-
-                setCompanyName(company_name || "");
-                setShortTerm(short_term || "");
-                setAddress(address || "");
-                setPreviewLogo(logo_url ? `http://localhost:5000${logo_url}` : null);
-                setPreviewBg(bg_image ? `http://localhost:5000${bg_image}` : null);
-                setHeaderColor(header_color || "#ffffff");
-                setFooterText(footer_text || "");
-                setFooterColor(footer_color || "#ffffff");
-                setMainButtonColor(main_button_color || "#ffffff");
-                setSubButtonColor(sub_button_color || "#ffffff");
-
-
-                setBorderColor(border_color || "#000000");
-
-
-                setTitleColor(title_color || "#000000");
-                setSubtitleColor(subtitle_color || "#555555");
-
-
+        axios.get("http://localhost:5000/api/settings")
+            .then(({ data }) => {
+                setCompanyName(data.company_name || "");
+                setShortTerm(data.short_term || "");
+                setAddress(data.address || "");
+                setPreviewLogo(data.logo_url ? `http://localhost:5000${data.logo_url}` : null);
+                setPreviewBg(data.bg_image ? `http://localhost:5000${data.bg_image}` : null);
+                setHeaderColor(data.header_color || "#ffffff");
+                setFooterText(data.footer_text || "");
+                setFooterColor(data.footer_color || "#ffffff");
+                setMainButtonColor(data.main_button_color || "#ffffff");
+                setSubButtonColor(data.sub_button_color || "#ffffff");
+                setBorderColor(data.border_color || "#000000");
+                setTitleColor(data.title_color || "#000000");
+                setSubtitleColor(data.subtitle_color || "#555555");
             })
-            .catch((error) => {
-                console.error("Error fetching settings:", error);
-                setSnack({
-                    open: true,
-                    message: "Failed to fetch settings",
-                    severity: "error",
-                });
-            });
+            .catch(() => setSnack({ open: true, message: "Failed to fetch settings", severity: "error" }));
     }, []);
 
-    // ✅ Submit form
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         const formData = new FormData();
-        formData.append("company_name", companyName || "");
-        formData.append("short_term", shortTerm || ""); // <-- NEW FIELD
-        formData.append("address", address || "");
+        formData.append("company_name", companyName);
+        formData.append("short_term", shortTerm);
+        formData.append("address", address);
         if (logo) formData.append("logo", logo);
         if (bgImage) formData.append("bg_image", bgImage);
-        formData.append("header_color", headerColor || "#ffffff");
-        formData.append("footer_text", footerText || "");
-        formData.append("footer_color", footerColor || "#ffffff");
+        formData.append("header_color", headerColor);
+        formData.append("footer_text", footerText);
+        formData.append("footer_color", footerColor);
         formData.append("main_button_color", mainButtonColor);
         formData.append("sub_button_color", subButtonColor);
         formData.append("border_color", borderColor);
         formData.append("title_color", titleColor);
         formData.append("subtitle_color", subtitleColor);
 
-
-
         try {
-            await axios.post("http://localhost:5000/api/settings", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-
-            if (typeof onUpdate === "function") {
-                await onUpdate();
-            }
-
-            setSnack({
-                open: true,
-                message: "Settings updated successfully!",
-                severity: "success",
-            });
-        } catch (error) {
-            console.error("Error updating settings:", error);
-            setSnack({
-                open: true,
-                message: "Error updating settings",
-                severity: "error",
-            });
+            await axios.post("http://localhost:5000/api/settings", formData, { headers: { "Content-Type": "multipart/form-data" } });
+            onUpdate?.();
+            setSnack({ open: true, message: "Settings updated successfully!", severity: "success" });
+        } catch {
+            setSnack({ open: true, message: "Error updating settings", severity: "error" });
         }
     };
 
-    // Access handling
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Check Access" />;
-    }
+    if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Check Access" />;
+    if (!hasAccess) return <Unauthorized />;
 
-    if (!hasAccess) {
-        return <Unauthorized />;
-    }
     return (
         <Box
             sx={{
-                width: "100%",
-                height: "100vh",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                backgroundColor: "transparent",
+                height: "calc(100vh - 150px)",
                 overflowY: "auto",
-                overflowX: "hidden",
-
+                backgroundColor: "transparent",
             }}
         >
-            {/* ✅ Header Section */}
             <Box
                 sx={{
-                    width: "100%",
                     display: "flex",
-                    justifyContent: "left",
-                    alignItems: "left",
-                    flexDirection: "column",
-                    mb: 3,
+                    justifyContent: "flex-start",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    mb: 2,
                 }}
             >
                 <Typography
@@ -245,288 +138,226 @@ function Settings({ onUpdate }) {
                         fontWeight: "bold",
                         color: titleColor,
                         fontSize: "36px",
-                        mb: 1,
                     }}
                 >
                     SETTINGS
                 </Typography>
-                <hr
-                    style={{
-                        border: "1px solid #ccc",
-                        width: "100%",
-                        margin: 0,
-                    }}
-                />
             </Box>
 
-            {/* ✅ Main Content */}
+            <hr style={{ border: "1px solid #ccc", width: "100%" }} />
+            <br />
+
+
             <Paper
-                elevation={6}
                 sx={{
                     p: 3,
-                    width: "50%",
-                    maxWidth: "600px",
-                    borderRadius: 4,
-                    backgroundColor: "#fff",
+                    borderRadius: 3,
+                    display: "flex",
+                    gap: 5,
                     border: `2px solid ${borderColor}`,
-                    boxShadow: "0px 4px 20px rgba(0,0,0,0.1)",
-                    mb: 12,
+                    flexDirection: { xs: "column", md: "row" },
                 }}
             >
-                <Box textAlign="center" mb={2}>
-                    <SettingsIcon
-                        sx={{
-                            fontSize: 80,
-                            color: "#000000",
-                            backgroundColor: "#e3f2fd",
-                            borderRadius: "50%",
-                            p: 1,
-                        }}
-                    />
-                    <Typography
-                        variant="h5"
-                        fontWeight="bold"
-                        sx={{ mt: 1, color: subtitleColor }}
-                    >
-                        Customize Your Settings
+
+                {/* Left side: School info */}
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: subtitleColor }}>
+                        Customize your Settings
                     </Typography>
-                </Box>
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Typography sx={{ width: "150px", fontWeight: "500" }}>School Name:</Typography>
+                            <TextField
+                                value={companyName}
+                                onChange={e => setCompanyName(e.target.value)}
+                                fullWidth
+                                size="small"
+                            />
+                        </Box>
 
-                <Divider sx={{ mb: 2 }} />
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Typography sx={{ width: "150px", fontWeight: "500" }}>Short Term:</Typography>
+                            <TextField
+                                value={shortTerm}
+                                onChange={e => setShortTerm(e.target.value)}
+                                fullWidth
+                                size="small"
+                            />
+                        </Box>
 
-                <form onSubmit={handleSubmit}>
-                    {/* ✅ School Name */}
-                    <Box mb={2}>
-                        <InputLabel>School Name</InputLabel>
-                        <TextField
-                            value={companyName}
-                            onChange={(e) => setCompanyName(e.target.value)}
-                            fullWidth
-                            size="small"
-                            variant="outlined"
-                        />
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Typography sx={{ width: "150px", fontWeight: "500" }}>Address:</Typography>
+                            <TextField
+                                value={address}
+                                onChange={e => setAddress(e.target.value)}
+                                fullWidth
+                                size="small"
+                            />
+                        </Box>
+
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                            <Typography sx={{ width: "150px", fontWeight: "500" }}>Footer Text:</Typography>
+                            <TextField
+                                value={footerText}
+                                onChange={e => setFooterText(e.target.value)}
+                                fullWidth
+                                size="small"
+                                sx={{ color: subtitleColor }}
+                            />
+                        </Box>
                     </Box>
 
-                    {/* ✅ Short Term (Abbreviation) */}
-                    <Box mb={2}>
-                        <InputLabel>Short Term</InputLabel>
-                        <TextField
-                            value={shortTerm}
-                            onChange={(e) => setShortTerm(e.target.value)}
-                            fullWidth
-                            size="small"
-                            variant="outlined"
-                            placeholder="School Short Name Called"
-                        />
-                    </Box>
 
-                    {/* ✅ Address */}
-                    <Box mb={2}>
-                        <InputLabel>Address</InputLabel>
-                        <TextField
-                            value={address}
-                            onChange={(e) => setAddress(e.target.value)}
-                            fullWidth
-                            size="small"
-                            variant="outlined"
-                        />
-                    </Box>
-
-                    {/* ✅ Logo Upload */}
-                    <Box mb={2}>
-                        <InputLabel>Logo</InputLabel>
-                        <Input
-                            type="file"
-                            onChange={(e) => {
-                                const file = e.target.files[0];
-                                setLogo(file);
-                                setPreviewLogo(URL.createObjectURL(file));
-                            }}
-                            fullWidth
-                        />
-                        {previewLogo && (
-                            <Box
-                                component="img"
-                                src={previewLogo}
-                                alt="Logo Preview"
-                                sx={{
-                                    width: "100px",
-                                    height: "100px",
-                                    mt: 1,
-                                    mx: "auto",
-                                    display: "block",
-                                    border: "2px solid #1976d2",
-                                    borderRadius: "3px",
-                                    objectFit: "cover",
+                    <Box style={{ marginTop: "-5px" }}>
+                        <Typography sx={{ width: "150px", fontWeight: "500" }}>School Logo:</Typography>
+                        <hr style={{ border: "1px solid #ccc", width: "100%", marginBottom: "10px" }} />
+                        <Button
+                            variant="contained" // changed to contained for primary color
+                            component="label"
+                            sx={{ mb: 1, backgroundColor: "#primary", color: "#fff", "&:hover": { backgroundColor: "#000" } }}
+                        >
+                            Choose Logo
+                            <input
+                                type="file"
+                                hidden
+                                accept="image/*"
+                                onChange={e => {
+                                    setLogo(e.target.files[0]);
+                                    setPreviewLogo(URL.createObjectURL(e.target.files[0]));
                                 }}
                             />
+                        </Button>
+
+                        {/* Centered preview */}
+                        {previewLogo && (
+                            <Box sx={{ display: "flex", justifyContent: "center" }}>
+                                <Box
+                                    component="img"
+                                    src={previewLogo}
+                                    sx={{
+                                        width: "100px",
+                                        height: "100px",
+                                        marginTop: "-15px",
+                                        border: `2px solid ${mainButtonColor}`,
+                                        borderRadius: 2,
+                                        objectFit: "cover",
+                                    }}
+                                />
+                            </Box>
                         )}
                     </Box>
 
-                    {/* ✅ Background Image Upload */}
-                    <Box mb={2}>
-                        <InputLabel>Background Image</InputLabel>
-                        <Input
-                            type="file"
-                            onChange={(e) => {
-                                const file = e.target.files[0];
-                                setBgImage(file);
-                                setPreviewBg(URL.createObjectURL(file));
-                            }}
-                            fullWidth
-                        />
+                    {/* Background upload */}
+                    <Box style={{ marginTop: "-5px" }}>
+                        <Typography sx={{ width: "350px", fontWeight: "500" }}>Background School Image:</Typography>
+                        <hr style={{ border: "1px solid #ccc", width: "100%", marginBottom: "10px" }} />
+                        <Button
+                            variant="contained" // changed to contained for primary color
+                            component="label"
+                            sx={{ mb: 3, backgroundColor: "#primary", color: "#fff", "&:hover": { backgroundColor: "#000" } }}
+                        >
+                            Choose Background
+                            <input
+                                type="file"
+                                hidden
+                                accept="image/*"
+                                onChange={e => {
+                                    setBgImage(e.target.files[0]);
+                                    setPreviewBg(URL.createObjectURL(e.target.files[0]));
+                                }}
+                            />
+                        </Button>
                         {previewBg && (
                             <Box
                                 component="img"
                                 src={previewBg}
-                                alt="Background Preview"
                                 sx={{
                                     width: "100%",
-                                    height: "180px",
-                                    mt: 1,
-                                    border: "2px solid #1976d2",
-                                    borderRadius: "3px",
+                                    height: "400px",
+                                    border: `2px solid ${borderColor}`,
+                                    borderRadius: 2,
                                     objectFit: "cover",
                                 }}
                             />
                         )}
                     </Box>
+                </Box>
 
-                    {/* ✅ Header Color */}
-                    <Box mb={2}>
-                        <InputLabel>Header Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={headerColor}
-                            onChange={(e) => setHeaderColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
+                {/* Right side: Colors + Save Button */}
+                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
+                    <Typography variant="h6" fontWeight="bold" sx={{ color: subtitleColor }}>
+                        Colors
+                    </Typography>
+                    {[
+                        { label: "Header Color", value: headerColor, setter: setHeaderColor },
+                        { label: "Footer Color", value: footerColor, setter: setFooterColor },
+                        { label: "Main Button Color / Sidebar Background Color", value: mainButtonColor, setter: setMainButtonColor },
+                        { label: "Sub Button Color", value: subButtonColor, setter: setSubButtonColor },
+                        { label: "Border Color", value: borderColor, setter: setBorderColor },
+                        { label: "Title Color / Icons Color", value: titleColor, setter: setTitleColor },
+                        { label: "Subtitle Color", value: subtitleColor, setter: setSubtitleColor },
+                    ].map(c => (
+                        <Box key={c.label} sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                            {/* Label with colon and bold */}
+                            <InputLabel sx={{ mb: 1, fontWeight: "500" }}>
+                                {c.label}:
+                            </InputLabel>
 
-                    {/* ✅ Footer Text */}
-                    <Box mb={2}>
-                        <InputLabel>Footer Text</InputLabel>
-                        <TextField
-                            value={footerText}
-                            onChange={(e) => setFooterText(e.target.value)}
-                            fullWidth
-                            size="small"
-                            variant="outlined"
-                        />
-                    </Box>
+                            <Box
+                                sx={{
+                                    height: "50px",
+                                    borderRadius: 3,
+                                    overflow: "hidden",
+                                    border: "2px solid #ccc",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                }}
+                                onClick={() => document.getElementById(c.label).click()}
+                            >
+                                <Box sx={{ flex: 1, backgroundColor: c.value }} />
+                                <Input
+                                    type="color"
+                                    id={c.label}
+                                    value={c.value}
+                                    onChange={e => c.setter(e.target.value)}
+                                    sx={{ opacity: 0, width: 0, height: 0 }}
+                                />
+                            </Box>
 
-                    {/* ✅ Footer Color */}
-                    <Box mb={2}>
-                        <InputLabel>Footer Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={footerColor}
-                            onChange={(e) => setFooterColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
+                            {/* Horizontal line below each color picker */}
+                            <hr style={{ border: "1px solid #ccc", width: "100%", marginTop: "10px" }} />
+                        </Box>
+                    ))}
 
-                    <Box mb={2}>
-                        <InputLabel>Title Color / Icons Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={titleColor}
-                            onChange={(e) => setTitleColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
-
-                    <Box mb={2}>
-                        <InputLabel>Subtitle Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={subtitleColor}
-                            onChange={(e) => setSubtitleColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
-
-
-
-                    <Box mb={2}>
-                        <InputLabel>Main Button Color / Sidebar Background Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={mainButtonColor}
-                            onChange={(e) => setMainButtonColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
-
-                    <Box mb={2}>
-                        <InputLabel>Sub Button Color</InputLabel>
-                        <Input
-                            type="color"
-                            value={subButtonColor}
-                            onChange={(e) => setSubButtonColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
-
-
-                    <Box mb={2}>
-                        <InputLabel>Border Color each page / border of each form </InputLabel>
-                        <Input
-                            type="color"
-                            value={borderColor}
-                            onChange={(e) => setBorderColor(e.target.value)}
-                            fullWidth
-                            sx={{ height: "40px", cursor: "pointer" }}
-                        />
-                    </Box>
-
-
-
-
-
-                    {/* ✅ Save Button */}
+                    {/* Save Button under right column */}
                     <Button
                         type="submit"
                         variant="contained"
-                        fullWidth
                         sx={{
-                            py: 1.2,
-                            borderRadius: 2,
-                            backgroundColor: "#1976d2",
-                            textTransform: "none",
+                            mt: 4,
+                            py: 1.5,
+                            border: `2px solid ${borderColor}`,
+                            width: "250px",
+                            marginRight: "190px",
                             fontWeight: "bold",
-                            "&:hover": { backgroundColor: "#1565c0" },
+                            alignSelf: "flex-end", // pushes it to the right side of the column
+                            backgroundColor: "#primary"
+
                         }}
+                        onClick={handleSubmit}
                     >
                         Save Settings
                     </Button>
-                </form>
-            </Paper>
+                </Box>
+            </Paper >
 
-            {/* ✅ Snackbar */}
-            <Snackbar
-                open={snack.open}
-                autoHideDuration={4000}
-                onClose={handleCloseSnack}
-                anchorOrigin={{ vertical: "top", horizontal: "center" }}
-            >
-                <Alert
-                    severity={snack.severity}
-                    onClose={handleCloseSnack}
-                    sx={{ width: "100%" }}
-                >
-                    {snack.message}
-                </Alert>
+
+
+            <Snackbar open={snack.open} autoHideDuration={4000} onClose={handleCloseSnack} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+                <Alert severity={snack.severity} onClose={handleCloseSnack} sx={{ width: "100%" }}>{snack.message}</Alert>
             </Snackbar>
-        </Box>
+        </Box >
     );
-
 }
 
 export default Settings;

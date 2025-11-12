@@ -919,11 +919,15 @@ const StudentRequirements = () => {
 
 
                 <Button
+                  disabled
                   onClick={() => handleConfirmDelete(uploaded)}
                   sx={{
-                    backgroundColor: 'maroon',
-                    color: 'white',
-                    '&:hover': { backgroundColor: '#600000' },
+                    backgroundColor: uploaded.canDelete ? 'maroon' : 'lightgray',
+                    color: uploaded.canDelete ? 'white' : '#888',
+                    cursor: uploaded.canDelete ? 'pointer' : 'not-allowed',
+                    '&:hover': {
+                      backgroundColor: uploaded.canDelete ? '#600000' : 'lightgray',
+                    },
                   }}
                 >
                   Delete

@@ -1,27 +1,42 @@
 import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Snackbar, Alert } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
-
 
 const ChangeGradingPeriod = () => {
   const settings = useContext(SettingsContext);
 
-  // 🎨 UI color states
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
-  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");
-  const [stepperColor, setStepperColor] = useState("#000000");
 
-  // 🏫 School info
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
-  const [campusAddress, setCampusAddress] = useState("");
+  const [gradingPeriod, setGradingPeriod] = useState([]);
+  const [userRole, setUserRole] = useState("");
+  const [userID, setUserID] = useState("");
+  const [employeeID, setEmployeeID] = useState("");
+  const [hasAccess, setHasAccess] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const pageId = 14;
+
+  // 🌟 Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
+  // Fetch grading periods
+  const fetchYearPeriod = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/get-grading-period");
+      setGradingPeriod(response.data);
+    } catch (error) {
+      console.error("Error fetching grading periods", error);
+      setSnackbar({ open: true, message: "Failed to fetch grading periods", severity: "error" });
+    }
+  };
 
   useEffect(() => {
     if (!settings) return;
@@ -29,48 +44,17 @@ const ChangeGradingPeriod = () => {
     setTitleColor(settings.title_color || "#000000");
     setSubtitleColor(settings.subtitle_color || "#555555");
     setBorderColor(settings.border_color || "#000000");
-    setMainButtonColor(settings.main_button_color || "#1976d2");
-    setSubButtonColor(settings.sub_button_color || "#ffffff");
-    setStepperColor(settings.stepper_color || "#000000");
-
-    setFetchedLogo(settings.logo_url ? `http://localhost:5000${settings.logo_url}` : EaristLogo);
-    setCompanyName(settings.company_name || "");
-    setShortTerm(settings.short_term || "");
-    setCampusAddress(settings.campus_address || "");
   }, [settings]);
 
-  // 📆 Grading period list
-  const [gradingPeriod, setGradingPeriod] = useState([]);
-  const fetchYearPeriod = async () => {
-    try {
-      const response = await axios.get("http://localhost:5000/get-grading-period");
-      setGradingPeriod(response.data);
-    } catch (error) {
-      console.error("Error in Fetching Data", error);
-    }
-  };
-
-  // 👤 User and access control
-  const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
-  const [userRole, setUserRole] = useState("");
-  const [hasAccess, setHasAccess] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const pageId = 14;
-
-  const [employeeID, setEmployeeID] = useState("");
-
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
       setUserID(storedID);
+      setUserRole(storedRole);
       setEmployeeID(storedEmployeeID);
 
       if (storedRole === "registrar") {
@@ -84,25 +68,18 @@ const ChangeGradingPeriod = () => {
   }, []);
 
   const checkAccess = async (employeeID) => {
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
+      setHasAccess(response.data?.page_privilege === 1);
     } catch (error) {
-      console.error('Error checking access:', error);
+      console.error("Error checking access", error);
       setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
+      setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
+    } finally {
       setLoading(false);
     }
   };
-
 
   useEffect(() => {
     fetchYearPeriod();
@@ -111,16 +88,20 @@ const ChangeGradingPeriod = () => {
   const handlePeriodActivate = async (id) => {
     try {
       await axios.post(`http://localhost:5000/grade_period_activate/${id}`);
-      alert("Grading period activated!");
+      setSnackbar({ open: true, message: "Grading period activated!", severity: "success" });
       fetchYearPeriod();
     } catch (error) {
       console.error("Error activating grading period:", error);
+      setSnackbar({ open: true, message: "Failed to activate grading period", severity: "error" });
     }
   };
 
-  // 🌀 Loading and access guard
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
   if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Checking Access..." />;
+    return <LoadingOverlay open={loading} message="Check Access" />;
   }
 
   if (!hasAccess) {
@@ -128,39 +109,15 @@ const ChangeGradingPeriod = () => {
   }
 
   return (
-    <Box
-      sx={{
-        height: "calc(100vh - 150px)",
-        overflowY: "auto",
-        paddingRight: 1,
-        backgroundColor: "transparent",
-      }}
-    >
-      {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          mb: 2,
-        }}
-      >
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: "bold",
-            color: titleColor,
-            fontSize: "36px",
-          }}
-        >
+    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent" }}>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, fontSize: "36px" }}>
           GRADING PERIOD
         </Typography>
       </Box>
 
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
 
-      {/* Period List */}
       <Box sx={{ mt: 3 }}>
         {gradingPeriod.map((period) => (
           <Box
@@ -188,10 +145,7 @@ const ChangeGradingPeriod = () => {
                 <Button
                   variant="contained"
                   onClick={() => handlePeriodActivate(period.id)}
-                  sx={{
-                    backgroundColor: "#4CAF50",
-                    "&:hover": { backgroundColor: "#45a049" },
-                  }}
+                  sx={{ backgroundColor: "#4CAF50", "&:hover": { backgroundColor: "#45a049" } }}
                 >
                   Activate
                 </Button>
@@ -200,6 +154,18 @@ const ChangeGradingPeriod = () => {
           </Box>
         ))}
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -267,7 +267,7 @@ const EvaluationCRUD = () => {
             choice4: question.fourth_choice,
             choice5: question.fifth_choice,
         });
-        setSelectedId(question.id);
+        setSelectedId(question.question_id);
         setEditMode(true);
         setOpenDialog(true);
     };

@@ -578,16 +578,17 @@ const AssignScheduleToApplicantsInterviewer = () => {
     };
 
     const handleSendEmails = () => {
-        if (!person || !person.first_name) {
-            setSnack({
-                open: true,
-                message: "Applicant information is missing.",
-                severity: "error",
-            });
-            return;
-        }
         if (!selectedSchedule) {
             setSnack({ open: true, message: "Please select a schedule first.", severity: "warning" });
+            return;
+        }
+
+        // Get the selected applicant from persons based on selectedApplicants set
+        const selectedId = Array.from(selectedApplicants)[0];
+        const applicant = persons.find(a => a.applicant_number === selectedId);
+
+        if (!applicant) {
+            setSnack({ open: true, message: "Please select an applicant first.", severity: "warning" });
             return;
         }
 
@@ -600,17 +601,20 @@ const AssignScheduleToApplicantsInterviewer = () => {
         const formattedStart = new Date(`1970-01-01T${sched.start_time}`).toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
-            hour12: true
+            hour12: true,
         });
         const formattedEnd = new Date(`1970-01-01T${sched.end_time}`).toLocaleTimeString("en-US", {
             hour: "numeric",
             minute: "2-digit",
-            hour12: true
+            hour12: true,
         });
 
-        // 📝 Pre-fill the message before opening the dialog
+        // ✅ Safely build the applicant’s full name
+        const fullName = `${applicant.last_name ?? ""}, ${applicant.first_name ?? ""} ${applicant.middle_name ?? ""}`.trim();
+
+        // 📝 Pre-fill message before opening the dialog
         setEmailMessage(
-            `Dear ${person.first_name} ${person.middle_name || ""} ${person.last_name},
+            `Dear ${fullName},
 
 You are scheduled for an interview on:
 
@@ -618,11 +622,10 @@ You are scheduled for an interview on:
 🏢 Building: ${sched.building_description}
 🏫 Room: ${sched.room_description}
 🕒 Time: ${formattedStart} - ${formattedEnd}
-👤 Interviewer: ${sched.interviewer}
 
 Please bring the following requirements:
 
-1. Go to Applicant Form > Print the Admission Form Process.
+1. First, log in to your account at /login_applicant, then proceed to the Applicant Form and click “Print Admission Form Process.”
 2. Proceed to the Guidance Office to verify if you are qualified to take the Qualifying / Interview Exam.
 3. You must have your Admission Form signed at the Guidance Office before proceeding to take the exam.
 
@@ -630,14 +633,15 @@ Thank you and good luck on your Qualifying / Interview Exam!
 `
         );
 
-        setConfirmOpen(true); // finally open the dialog
-        // finally open the dialog
+        // ✅ Now safely open the dialog
+        setConfirmOpen(true);
     };
+
 
 
     const confirmSendEmails = () => {
         setConfirmOpen(false);
-        setLoading2(true);
+        setLoading(true);
         const assignedApplicants = Array.from(selectedApplicants);
 
         socket.emit("send_interview_emails", {
@@ -664,6 +668,7 @@ Thank you and good luck on your Qualifying / Interview Exam!
             setLoading2(false);
         });
     };
+
 
 
 

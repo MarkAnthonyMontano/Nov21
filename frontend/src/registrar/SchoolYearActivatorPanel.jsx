@@ -1,78 +1,50 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
-import {
-    Typography, Box
-
-} from '@mui/material';
+import { Typography, Box, Snackbar, Alert } from '@mui/material';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 const SchoolYearActivatorPanel = () => {
-
     const settings = useContext(SettingsContext);
 
     const [titleColor, setTitleColor] = useState("#000000");
     const [subtitleColor, setSubtitleColor] = useState("#555555");
     const [borderColor, setBorderColor] = useState("#000000");
-    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
 
-    const [fetchedLogo, setFetchedLogo] = useState(null);
-    const [companyName, setCompanyName] = useState("");
-    const [shortTerm, setShortTerm] = useState("");
-    const [campusAddress, setCampusAddress] = useState("");
-
-    useEffect(() => {
-        if (!settings) return;
-
-        // 🎨 Colors
-        if (settings.title_color) setTitleColor(settings.title_color);
-        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-        if (settings.border_color) setBorderColor(settings.border_color);
-        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
-
-        // 🏫 Logo
-        if (settings.logo_url) {
-            setFetchedLogo(`http://localhost:5000${settings.logo_url}`);
-        } else {
-            setFetchedLogo(EaristLogo);
-        }
-
-        // 🏷️ School Information
-        if (settings.company_name) setCompanyName(settings.company_name);
-        if (settings.short_term) setShortTerm(settings.short_term);
-        if (settings.campus_address) setCampusAddress(settings.campus_address);
-
-    }, [settings]);
-
-    // Also put it at the very top
     const [userID, setUserID] = useState("");
-    const [user, setUser] = useState("");
     const [userRole, setUserRole] = useState("");
-
+    const [employeeID, setEmployeeID] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
-
     const pageId = 57;
 
-    const [employeeID, setEmployeeID] = useState("");
+    const [schoolYears, setSchoolYears] = useState([]);
+
+    // Snackbar state
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: "",
+        severity: "success",
+    });
 
     useEffect(() => {
+        if (!settings) return;
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+    }, [settings]);
 
+    useEffect(() => {
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
         const storedID = localStorage.getItem("person_id");
         const storedEmployeeID = localStorage.getItem("employee_id");
 
         if (storedUser && storedRole && storedID) {
-            setUser(storedUser);
-            setUserRole(storedRole);
             setUserID(storedID);
+            setUserRole(storedRole);
             setEmployeeID(storedEmployeeID);
 
             if (storedRole === "registrar") {
@@ -86,29 +58,18 @@ const SchoolYearActivatorPanel = () => {
     }, []);
 
     const checkAccess = async (employeeID) => {
+        setLoading(true);
         try {
             const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-            if (response.data && response.data.page_privilege === 1) {
-                setHasAccess(true);
-            } else {
-                setHasAccess(false);
-            }
+            setHasAccess(response.data?.page_privilege === 1);
         } catch (error) {
             console.error('Error checking access:', error);
             setHasAccess(false);
-            if (error.response && error.response.data.message) {
-                console.log(error.response.data.message);
-            } else {
-                console.log("An unexpected error occurred.");
-            }
+            setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
+        } finally {
             setLoading(false);
         }
     };
-
-
-
-
-    const [schoolYears, setSchoolYears] = useState([]);
 
     const fetchSchoolYears = async () => {
         try {
@@ -116,8 +77,13 @@ const SchoolYearActivatorPanel = () => {
             setSchoolYears(res.data);
         } catch (error) {
             console.error("Error fetching school years:", error);
+            setSnackbar({ open: true, message: "Failed to fetch school years", severity: "error" });
         }
     };
+
+    useEffect(() => {
+        fetchSchoolYears();
+    }, []);
 
     const toggleActivator = async (schoolYearId, currentStatus) => {
         try {
@@ -134,101 +100,73 @@ const SchoolYearActivatorPanel = () => {
             });
 
             fetchSchoolYears(); // Refresh after change
+            setSnackbar({
+                open: true,
+                message: updatedStatus === 1 ? "School year activated!" : "School year deactivated!",
+                severity: "success"
+            });
         } catch (error) {
             console.error("Error updating activator:", error);
+            setSnackbar({
+                open: true,
+                message: "Failed to update school year",
+                severity: "error"
+            });
         }
     };
 
+    // 🔒 Disable right-click & DevTools
     useEffect(() => {
-        fetchSchoolYears();
+        const handleContextMenu = (e) => e.preventDefault();
+        const handleKeyDown = (e) => {
+            const blocked = ['F12', 'F11'];
+            if (
+                blocked.includes(e.key) ||
+                (e.ctrlKey && e.shiftKey && ['i', 'j'].includes(e.key.toLowerCase())) ||
+                (e.ctrlKey && ['u', 'p'].includes(e.key.toLowerCase()))
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        };
+        document.addEventListener('contextmenu', handleContextMenu);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
     }, []);
 
-    // 🔒 Disable right-click
-    document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // 🔒 Block DevTools shortcuts + Ctrl+P silently
-    document.addEventListener('keydown', (e) => {
-        const isBlockedKey =
-            e.key === 'F12' || // DevTools
-            e.key === 'F11' || // Fullscreen
-            (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j')) || // Ctrl+Shift+I/J
-            (e.ctrlKey && e.key.toLowerCase() === 'u') || // Ctrl+U (View Source)
-            (e.ctrlKey && e.key.toLowerCase() === 'p');   // Ctrl+P (Print)
-
-        if (isBlockedKey) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    });
-
-
-
-
-    // Put this at the very bottom before the return 
-    if (loading || hasAccess === null) {
-        return <LoadingOverlay open={loading} message="Check Access" />;
-    }
-
-    if (!hasAccess) {
-        return (
-            <Unauthorized />
-        );
-    }
+    if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Check Access" />;
+    if (!hasAccess) return <Unauthorized />;
 
     return (
         <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent" }}>
-
-            <Box
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    flexWrap: 'wrap',
-
-                    mb: 2,
-
-                }}
-            >
-                <Typography
-                    variant="h4"
-                    sx={{
-                        fontWeight: 'bold',
-                        color: titleColor,
-                        fontSize: '36px',
-                    }}
-                >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 'bold', color: titleColor, fontSize: '36px' }}>
                     SCHOOL YEAR ACTIVATOR PANEL
                 </Typography>
-
-
-
-
             </Box>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-
             <br />
-
-            <table className="w-full border border-gray-300" style={{ border: "2px solid maroon", textAlign: "center" }} >
+            <table className="w-full border border-gray-300" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }} >
                 <thead>
                     <tr style={{ backgroundColor: settings?.header_color || "#1976d2", color: "#ffffff" }}>
-                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Year Level</th>
-                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Semester</th>
-                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Status</th>
-                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>Action</th>
+                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Year Level</th>
+                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Semester</th>
+                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Status</th>
+                        <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {schoolYears.map((sy) => (
                         <tr key={sy.id}>
-                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
-                                {`${sy.year_description}-${parseInt(sy.year_description) + 1}`}
-                            </td>
-                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{sy.semester_description}</td>
-                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
-                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>{`${sy.year_description}-${parseInt(sy.year_description) + 1}`}</td>
+                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>{sy.semester_description}</td>
+                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>{sy.astatus === 1 ? "Active" : "Inactive"}</td>
+                            <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>
                                 <button
-                                    className={`px-3 py-1 rounded text-white w-full ${sy.astatus === 1 ? "bg-red-600" : "bg-green-600"
-                                        }`}
+                                    className={`px-3 py-1 rounded text-white w-full ${sy.astatus === 1 ? "bg-red-600" : "bg-green-600"}`}
                                     onClick={() => toggleActivator(sy.id, sy.astatus)}
                                 >
                                     {sy.astatus === 1 ? "Deactivate" : "Activate"}
@@ -238,6 +176,18 @@ const SchoolYearActivatorPanel = () => {
                     ))}
                 </tbody>
             </table>
+
+            {/* Snackbar */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+                <Alert severity={snackbar.severity} onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

@@ -11,9 +11,15 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions,
+  Button
 } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 
 const ScheduleChecker = () => {
 
@@ -55,24 +61,23 @@ const ScheduleChecker = () => {
     if (settings.short_term) setShortTerm(settings.short_term);
     if (settings.campus_address) setCampusAddress(settings.campus_address);
 
-  }, [settings]);
+  }, [settings]); 
 
 
-  // Also put it at the very top
-  const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
-  const [userRole, setUserRole] = useState("");
+// Also put it at the very top
+const [userID, setUserID] = useState("");
+const [user, setUser] = useState("");
+const [userRole, setUserRole] = useState("");
+const [employeeID, setEmployeeID] = useState("");
+const [hasAccess, setHasAccess] = useState(null);
+const [loading, setLoading] = useState(false);
 
-  const [hasAccess, setHasAccess] = useState(null);
-  const [loading, setLoading] = useState(false);
 
+const pageId = 56;
 
-  const pageId = 56;
-
-  const [employeeID, setEmployeeID] = useState("");
-
-  useEffect(() => {
-
+//Put this After putting the code of the past code
+useEffect(() => {
+    
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
@@ -94,26 +99,25 @@ const ScheduleChecker = () => {
     }
   }, []);
 
-  const checkAccess = async (employeeID) => {
+const checkAccess = async (employeeID) => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
+        const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
+        if (response.data && response.data.page_privilege === 1) {
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+        }
     } catch (error) {
-      console.error('Error checking access:', error);
-      setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
-      setLoading(false);
+        console.error('Error checking access:', error);
+        setHasAccess(false);
+        if (error.response && error.response.data.message) {
+          console.log(error.response.data.message);
+        } else {
+          console.log("An unexpected error occurred.");
+        }
+        setLoading(false);
     }
   };
-
 
 
 
@@ -139,6 +143,8 @@ const ScheduleChecker = () => {
   const [sectionList, setSectionList] = useState([]);
   const [schedule, setSchedule] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [openDialogue, setOpenDialogue] = useState(false);
+  const [selectedScheduleId, setSelectedScheduleId] = useState(null);
   const { dprtmnt_id } = useParams();
 
   const fetchRoom = async () => {
@@ -213,11 +219,10 @@ const ScheduleChecker = () => {
       );
       setSchedule(response.data);
     } catch (error) {
-      console.error("Error fetching schedule:", error);
 
       if (error.response && error.response.status === 404) {
         setMessage(
-          "Schedule not found in selected program and room. Please assign a schedule."
+          "Schedule not found. Please assign a schedule."
         );
       } else {
         setMessage("Failed to fetch schedule. Please try again later.");
@@ -389,24 +394,28 @@ const ScheduleChecker = () => {
   };
 
   const handleDelete = async (scheduleId) => {
-    if (!window.confirm("Are you sure you want to delete this schedule?")) return;
-
     try {
       const res = await axios.delete(
         `http://localhost:5000/api/delete/schedule/${scheduleId}`
       );
       setMessage(res.data.message);
       setOpenSnackbar(true);
+      
+      if (selectedScheduleId === scheduleId) {
+        setOpenDialogue(false);
+        setSelectedScheduleId(null);
+      }
+
       fetchSchedule();
       try {
         const page_name = "Schedule Plotting";
-        const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
+        const fullName = `${user}`;
         const type = "delete"
-
-        await axios.post(`http://localhost:5000/insert-logs/faculty/${profData.prof_id}`, {
-          message: `Employee ID #${profData.prof_id} - ${fullName} successfully delete schedule in ${page_name}`, type: type,
+  
+        await axios.post(`http://localhost:5000/insert-logs/${userID}`, {
+          message: `Employee ID #${userID} - ${fullName} successfully delete schedule in ${page_name}`, type: type,
         });
-
+  
       } catch (err) {
         console.error("Error inserting audit log");
       }
@@ -471,8 +480,7 @@ const ScheduleChecker = () => {
 
   const getCenterText = (start, day) => {
     const parseTime = (t) => new Date(`1970-01-01 ${t}`);
-    const SLOT_HEIGHT_REM = 2.5;
-
+    const SLOT_HEIGHT_REM = 2.5; // height per slot
     const slotStart = parseTime(start);
 
     for (const entry of schedule) {
@@ -484,63 +492,64 @@ const ScheduleChecker = () => {
       if (!(slotStart >= schedStart && slotStart < schedEnd)) continue;
 
       const totalHours = Math.round((schedEnd - schedStart) / (1000 * 60 * 60));
-      const idxInBlock = Math.round(
-        (slotStart - schedStart) / (1000 * 60 * 60)
-      );
 
-      const isOdd = totalHours % 2 === 1;
-      const centerIndex = isOdd ? (totalHours - 1) / 2 : totalHours / 2;
-      const isCenter = idxInBlock === centerIndex;
+      const isTopSlot = slotStart.getTime() === schedStart.getTime();
 
-      if (!isCenter) return "";
-
-      let marginTop = isOdd ? 0 : -(SLOT_HEIGHT_REM / 2);
-      if (!isOdd) marginTop = `calc(${marginTop}rem - 1rem)`;
-
-      let text;
-      if (totalHours === 1) {
-        text = (
-          <>
-            <span className="block truncate text-[10px]">
-              {entry.course_code}
-            </span>
-            <span className="block truncate text-[8px]">
-              {entry.room_description === "TBA"
-                ? "TBA"
-                : `${entry.program_code} - ${entry.section_description}`}
-            </span>
-            <span className="block truncate text-[8px]">
-              {entry.prof_lastname === "TBA"
-                ? "TBA"
-                : `Prof. ${entry.prof_lastname}`}
-            </span>
-          </>
-        );
-      } else {
-        text = (
-          <>
-            {entry.course_code} <br />(
+      const text = (
+        <>
+          <span className="block truncate">{entry.course_code}</span>
+          <span className="block truncate">
             {entry.room_description === "TBA"
               ? "TBA"
               : `${entry.program_code} - ${entry.section_description}`}
-            )
-            <br />
+          </span>
+          <span className="block truncate">
             {entry.prof_lastname === "TBA"
               ? "TBA"
               : `Prof. ${entry.prof_lastname}`}
-          </>
+          </span>
+        </>
+      );
+
+      // Show delete button only at top slot
+      const showDeleteButton = isTopSlot;
+
+      // Calculate vertical centering only for multi-slot blocks
+      let textContent = null;
+      if (totalHours === 1) {
+        // Single block → flex center
+        textContent = <div className="flex flex-col items-center justify-center h-full text-[9px]">{text}</div>;
+      } else {
+        // Multi-slot → absolute top with marginTop to center
+        const blockHeightRem = totalHours * SLOT_HEIGHT_REM;
+        const textHeightRem = 2; // approximate text height
+        const marginTop = (blockHeightRem - textHeightRem) / 2;
+
+        textContent = (
+          <span
+            className="absolute left-0 right-0 text-center text-[11px] leading-tight mt-[-5px]"
+            style={{ top: `${marginTop}rem` }}
+          >
+            {text}
+          </span>
         );
       }
 
       return (
-        <span
-          className={`relative inline-block text-center ${totalHours === 1 ? "text-[10px]" : "text-[11px]"
-            }`}
-          style={{ marginTop }}
-        >
-          {text}
-          <button onClick={() => handleDelete(entry.id)} > X </button>
-        </span>
+        <div className="schedule-block relative w-full h-full">
+          {showDeleteButton && (
+            <button
+              className="absolute top-[-10px] right-[-10px] bg-red-500 text-white rounded-full w-5 h-5 text-[10px] flex items-center justify-center hover:bg-red-700"
+              onClick={() => {
+                setSelectedScheduleId(entry.id);
+                setOpenDialogue(true);
+              }}
+            >
+              <HighlightOffIcon />
+            </button>
+          )}
+          {isTopSlot && textContent}
+        </div>
       );
     }
 
@@ -549,10 +558,12 @@ const ScheduleChecker = () => {
 
 
 
+  
+  
 
   // Put this at the very bottom before the return 
   if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Check Access" />;
+    return <LoadingOverlay open={loading} message="Check Access"/>;
   }
 
   if (!hasAccess) {
@@ -564,15 +575,15 @@ const ScheduleChecker = () => {
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent" }}>
 
-      <Box
+  <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-
+  
           mb: 2,
-
+     
         }}
       >
         <Typography
@@ -583,10 +594,10 @@ const ScheduleChecker = () => {
             fontSize: '36px',
           }}
         >
-          SCHEDULE CHECKER
+    SCHEDULE CHECKER
         </Typography>
 
-
+      
 
 
       </Box>
@@ -781,7 +792,7 @@ const ScheduleChecker = () => {
             <div className="flex justify-between">
               <button
                 className="bg-[#800000] hover:bg-red-900 text-white px-6 py-2 rounded"
-                style={{ backgroundColor: mainButtonColor, }}
+                style={{backgroundColor: mainButtonColor,}}
                 onClick={handleSubmit}
               >
                 Check Schedule
@@ -879,35 +890,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("7:00 AM", "8:00 AM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("7:00 AM", "8:00 AM", day) &&
-                          hasAdjacentSchedule("7:00 AM", "8:00 AM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("7:00 AM", "8:00 AM", day) &&
-                          hasAdjacentSchedule(
-                            "7:00 AM",
-                            "8:00 AM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("7:00 AM", "8:00 AM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("7:00 AM", "8:00 AM", day) &&
+                      hasAdjacentSchedule("7:00 AM", "8:00 AM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("7:00 AM", "8:00 AM", day) &&
+                      hasAdjacentSchedule(
+                        "7:00 AM",
+                        "8:00 AM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("7:00 AM", day)}
                     </div>
@@ -927,35 +942,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("8:00 AM", "9:00 AM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("8:00 AM", "9:00 AM", day) &&
-                          hasAdjacentSchedule("8:00 AM", "9:00 AM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("8:00 AM", "9:00 AM", day) &&
-                          hasAdjacentSchedule(
-                            "8:00 AM",
-                            "9:00 AM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("8:00 AM", "9:00 AM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("8:00 AM", "9:00 AM", day) &&
+                      hasAdjacentSchedule("8:00 AM", "9:00 AM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("8:00 AM", "9:00 AM", day) &&
+                      hasAdjacentSchedule(
+                        "8:00 AM",
+                        "9:00 AM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("8:00 AM", day)}
                     </div>
@@ -975,35 +994,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("9:00 AM", "10:00 AM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("9:00 AM", "10:00 AM", day) &&
-                          hasAdjacentSchedule("9:00 AM", "10:00 AM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("9:00 AM", "10:00 AM", day) &&
-                          hasAdjacentSchedule(
-                            "9:00 AM",
-                            "10:00 AM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("9:00 AM", "10:00 AM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("9:00 AM", "10:00 AM", day) &&
+                      hasAdjacentSchedule("9:00 AM", "10:00 AM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("9:00 AM", "10:00 AM", day) &&
+                      hasAdjacentSchedule(
+                        "9:00 AM",
+                        "10:00 AM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("9:00 AM", day)}
                     </div>
@@ -1023,39 +1046,43 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("10:00 AM", "11:00 AM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("10:00 AM", "11:00 AM", day) &&
-                          hasAdjacentSchedule(
-                            "10:00 AM",
-                            "11:00 AM",
-                            day,
-                            "top"
-                          ) === "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("10:00 AM", "11:00 AM", day) &&
-                          hasAdjacentSchedule(
-                            "10:00 AM",
-                            "11:00 AM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("10:00 AM", "11:00 AM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("10:00 AM", "11:00 AM", day) &&
+                      hasAdjacentSchedule(
+                        "10:00 AM",
+                        "11:00 AM",
+                        day,
+                        "top"
+                      ) === "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("10:00 AM", "11:00 AM", day) &&
+                      hasAdjacentSchedule(
+                        "10:00 AM",
+                        "11:00 AM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("10:00 AM", day)}
                     </div>
@@ -1075,39 +1102,43 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("11:00 AM", "12:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("11:00 AM", "12:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "11:00 AM",
-                            "12:00 PM",
-                            day,
-                            "top"
-                          ) === "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("11:00 AM", "12:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "11:00 AM",
-                            "12:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("11:00 AM", "12:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("11:00 AM", "12:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "11:00 AM",
+                        "12:00 PM",
+                        day,
+                        "top"
+                      ) === "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("11:00 AM", "12:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "11:00 AM",
+                        "12:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("11:00 AM", day)}
                     </div>
@@ -1127,35 +1158,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("12:00 PM", "1:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("12:00 PM", "1:00 PM", day) &&
-                          hasAdjacentSchedule("12:00 PM", "1:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("12:00 PM", "1:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "12:00 PM",
-                            "1:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("12:00 PM", "1:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("12:00 PM", "1:00 PM", day) &&
+                      hasAdjacentSchedule("12:00 PM", "1:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("12:00 PM", "1:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "12:00 PM",
+                        "1:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("12:00 PM", day)}
                     </div>
@@ -1175,35 +1210,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("1:00 PM", "2:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("1:00 PM", "2:00 PM", day) &&
-                          hasAdjacentSchedule("1:00 PM", "2:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("1:00 PM", "2:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "1:00 PM",
-                            "2:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("1:00 PM", "2:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("1:00 PM", "2:00 PM", day) &&
+                      hasAdjacentSchedule("1:00 PM", "2:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("1:00 PM", "2:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "1:00 PM",
+                        "2:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("1:00 PM", day)}
                     </div>
@@ -1223,35 +1262,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("2:00 PM", "3:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("2:00 PM", "3:00 PM", day) &&
-                          hasAdjacentSchedule("2:00 PM", "3:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("2:00 PM", "3:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "2:00 PM",
-                            "3:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("2:00 PM", "3:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("2:00 PM", "3:00 PM", day) &&
+                      hasAdjacentSchedule("2:00 PM", "3:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("2:00 PM", "3:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "2:00 PM",
+                        "3:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("2:00 PM", day)}
                     </div>
@@ -1271,35 +1314,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("3:00 PM", "4:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("3:00 PM", "4:00 PM", day) &&
-                          hasAdjacentSchedule("3:00 PM", "4:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("3:00 PM", "4:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "3:00 PM",
-                            "4:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("3:00 PM", "4:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("3:00 PM", "4:00 PM", day) &&
+                      hasAdjacentSchedule("3:00 PM", "4:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("3:00 PM", "4:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "3:00 PM",
+                        "4:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("3:00 PM", day)}
                     </div>
@@ -1319,35 +1366,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("4:00 PM", "5:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("4:00 PM", "5:00 PM", day) &&
-                          hasAdjacentSchedule("4:00 PM", "5:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("4:00 PM", "5:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "4:00 PM",
-                            "5:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("4:00 PM", "5:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("4:00 PM", "5:00 PM", day) &&
+                      hasAdjacentSchedule("4:00 PM", "5:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("4:00 PM", "5:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "4:00 PM",
+                        "5:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("4:00 PM", day)}
                     </div>
@@ -1367,35 +1418,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("5:00 PM", "6:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("5:00 PM", "6:00 PM", day) &&
-                          hasAdjacentSchedule("5:00 PM", "6:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("5:00 PM", "6:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "5:00 PM",
-                            "6:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("5:00 PM", "6:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("5:00 PM", "6:00 PM", day) &&
+                      hasAdjacentSchedule("5:00 PM", "6:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("5:00 PM", "6:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "5:00 PM",
+                        "6:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("5:00 PM", day)}
                     </div>
@@ -1415,35 +1470,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("6:00 PM", "7:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("6:00 PM", "7:00 PM", day) &&
-                          hasAdjacentSchedule("6:00 PM", "7:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("6:00 PM", "7:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "6:00 PM",
-                            "7:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("6:00 PM", "7:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("6:00 PM", "7:00 PM", day) &&
+                      hasAdjacentSchedule("6:00 PM", "7:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("6:00 PM", "7:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "6:00 PM",
+                        "7:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("6:00 PM", day)}
                     </div>
@@ -1463,35 +1522,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("7:00 PM", "8:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("7:00 PM", "8:00 PM", day) &&
-                          hasAdjacentSchedule("7:00 PM", "8:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("7:00 PM", "8:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "7:00 PM",
-                            "8:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("7:00 PM", "8:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("7:00 PM", "8:00 PM", day) &&
+                      hasAdjacentSchedule("7:00 PM", "8:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("7:00 PM", "8:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "7:00 PM",
+                        "8:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("7:00 PM", day)}
                     </div>
@@ -1511,35 +1574,39 @@ const ScheduleChecker = () => {
                 (day, i) => (
                   <td
                     key={day}
-                    className={`m-0 p-0 ${day === "WED"
+                    className={`m-0 p-0 ${
+                      day === "WED"
                         ? "min-w-[7rem]"
                         : day === "THU"
-                          ? "min-w-[6.9rem]"
-                          : "min-w-[6.8rem]"
-                      }`}
+                        ? "min-w-[6.9rem]"
+                        : "min-w-[6.8rem]"
+                    }`}
                   >
                     <div
                       className={`h-[2.5rem] border border-black border-t-0 border-l-0 text-[14px] flex items-center justify-center  
-                    ${isTimeInSchedule("8:00 PM", "9:00 PM", day)
-                          ? "bg-yellow-300"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("8:00 PM", "9:00 PM", day) &&
-                          hasAdjacentSchedule("8:00 PM", "9:00 PM", day, "top") ===
-                          "same"
-                          ? "border-t-0"
-                          : ""
-                        } 
-                    ${isTimeInSchedule("8:00 PM", "9:00 PM", day) &&
-                          hasAdjacentSchedule(
-                            "8:00 PM",
-                            "9:00 PM",
-                            day,
-                            "bottom"
-                          ) === "same"
-                          ? "border-b-0"
-                          : ""
-                        }`}
+                    ${
+                      isTimeInSchedule("8:00 PM", "9:00 PM", day)
+                        ? "bg-yellow-300"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("8:00 PM", "9:00 PM", day) &&
+                      hasAdjacentSchedule("8:00 PM", "9:00 PM", day, "top") ===
+                        "same"
+                        ? "border-t-0"
+                        : ""
+                    } 
+                    ${
+                      isTimeInSchedule("8:00 PM", "9:00 PM", day) &&
+                      hasAdjacentSchedule(
+                        "8:00 PM",
+                        "9:00 PM",
+                        day,
+                        "bottom"
+                      ) === "same"
+                        ? "border-b-0"
+                        : ""
+                    }`}
                     >
                       {getCenterText("8:00 PM", day)}
                     </div>
@@ -1550,6 +1617,40 @@ const ScheduleChecker = () => {
           </tbody>
         </table>
       </Box>
+
+      <Dialog
+        open={openDialogue}
+        onClose={() => {
+          setOpenDialogue(false);
+          setSelectedScheduleId(null);
+        }}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          Are you sure you want to delete this schedule?
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setOpenDialogue(false);
+              setSelectedScheduleId(null);
+            }}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={async () => {
+              if (selectedScheduleId) {
+                await handleDelete(selectedScheduleId);
+              }
+            }}
+            color="error"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -868,7 +868,7 @@ const OfficeOfTheRegistrar = () => {
                                         height: "10px"
                                     }}
                                 >
-                                    <div style={{ width: "100%", textAlign: "left", textTransform: "uppercase" }}>
+                                    <div style={{ width: "100%", textAlign: "left", textTransform: "uppercase", }}>
                                         {person.last_name}
                                     </div>
                                 </td>

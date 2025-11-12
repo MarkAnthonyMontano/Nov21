@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Snackbar, Alert } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 
@@ -11,100 +11,63 @@ const YearPanel = () => {
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
-  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");
-  const [stepperColor, setStepperColor] = useState("#000000");
-
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
-  const [campusAddress, setCampusAddress] = useState("");
-
-  useEffect(() => {
-    if (!settings) return;
-
-    if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-    if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);
-
-    if (settings.logo_url) {
-      setFetchedLogo(`http://localhost:5000${settings.logo_url}`);
-    } else {
-      setFetchedLogo(EaristLogo);
-    }
-
-    if (settings.company_name) setCompanyName(settings.company_name);
-    if (settings.short_term) setShortTerm(settings.short_term);
-    if (settings.campus_address) setCampusAddress(settings.campus_address);
-  }, [settings]);
 
   const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
-
+  const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const [yearDescription, setYearDescription] = useState("");
+  const [years, setYears] = useState([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
   const pageId = 67;
 
-  const [employeeID, setEmployeeID] = useState("");
-
+  // 🎨 Dynamic colors
   useEffect(() => {
+    if (!settings) return;
+    if (settings.title_color) setTitleColor(settings.title_color);
+    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+    if (settings.border_color) setBorderColor(settings.border_color);
+  }, [settings]);
 
+  // 👤 Access Check
+  useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
       setUserID(storedID);
+      setUserRole(storedRole);
       setEmployeeID(storedEmployeeID);
-
-      if (storedRole === "registrar") {
-        checkAccess(storedEmployeeID);
-      } else {
-        window.location.href = "/login";
-      }
-    } else {
-      window.location.href = "/login";
-    }
+      if (storedRole === "registrar") checkAccess(storedEmployeeID);
+      else window.location.href = "/login";
+    } else window.location.href = "/login";
   }, []);
 
   const checkAccess = async (employeeID) => {
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
-    } catch (error) {
-      console.error('Error checking access:', error);
+      setHasAccess(response.data?.page_privilege === 1);
+    } catch {
       setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
+      setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
+    } finally {
       setLoading(false);
     }
   };
 
-
-  const [yearDescription, setYearDescription] = useState("");
-  const [years, setYears] = useState([]);
-
+  // 📊 Fetch Year Data
   const fetchYears = async () => {
     try {
       const res = await axios.get("http://localhost:5000/year_table");
       setYears(res.data);
-    } catch (error) {
-      console.error("Error fetching years:", error);
+    } catch {
+      setSnackbar({ open: true, message: "Failed to fetch years", severity: "error" });
     }
   };
 
@@ -112,6 +75,7 @@ const YearPanel = () => {
     fetchYears();
   }, []);
 
+  // 💾 Save Year
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!yearDescription.trim()) return;
@@ -122,143 +86,177 @@ const YearPanel = () => {
       });
       setYearDescription("");
       fetchYears();
-    } catch (error) {
-      console.error("Error saving year:", error);
+      setSnackbar({ open: true, message: "Year saved successfully!", severity: "success" });
+    } catch {
+      setSnackbar({ open: true, message: "Failed to save year", severity: "error" });
     }
   };
 
-  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }));
 
-  document.addEventListener("keydown", (e) => {
-    const isBlockedKey =
-      e.key === "F12" ||
-      e.key === "F11" ||
-      (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === "i" || e.key.toLowerCase() === "j")) ||
-      (e.ctrlKey && e.key.toLowerCase() === "u") ||
-      (e.ctrlKey && e.key.toLowerCase() === "p");
+  // 🔒 Disable Right-Click & DevTools
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      const blocked =
+        e.key === "F12" ||
+        e.key === "F11" ||
+        (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && ["u", "p"].includes(e.key.toLowerCase()));
+      if (blocked) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-    if (isBlockedKey) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
-
-  if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Check Access" />;
-  }
-
-  if (!hasAccess) {
-    return <Unauthorized />;
-  }
+  if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Check Access" />;
+  if (!hasAccess) return <Unauthorized />;
 
   return (
-    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent" }}>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          mb: 2,
-        }}
-      >
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: "bold",
-            color: titleColor,
-            fontSize: "36px",
-          }}
-        >
-          YEAR PANEL
-        </Typography>
-      </Box>
-
+    <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1 }}>
+      {/* Header */}
+      <Typography variant="h4" sx={{ fontWeight: "bold", color: titleColor, mb: 2, fontSize: "36px" }}>
+        YEAR PANEL
+      </Typography>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
+      {/* Panel Layout */}
       <Box
         sx={{
           display: "flex",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 1,
+          flexDirection: { xs: "column", md: "row" },
+          gap: 3,
+          alignItems: "flex-start",
         }}
       >
-        {/* Form Section */}
+        {/* Form Card */}
         <Box
           sx={{
-            width: "100%",
-            maxWidth: "48%",
-            border: `2px solid ${borderColor}`, // ✅ dynamic border
-            padding: "20px",
-            borderRadius: "8px",
-            backgroundColor: "white",
-            boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+            flex: 1,
+            border: `2px solid ${borderColor}`,
+            borderRadius: "12px",
+            backgroundColor: "#fff",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+            p: 3,
           }}
         >
-          <Box sx={{ marginBottom: "20px" }}>
-            <Typography sx={{ display: "block", marginBottom: "8px", color: subtitleColor, fontWeight: "bold" }}>
-              Year Description:
-            </Typography>
-            <input
-              type="text"
-              placeholder="Enter year (e.g., 2026)"
-              value={yearDescription}
-              onChange={(e) => setYearDescription(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: "5px",
-                border: "1px solid #ccc",
-              }}
-            />
-          </Box>
+          <Typography sx={{ color: subtitleColor, fontWeight: "bold", mb: 1, fontSize: "18px" }}>
+            Add New Year
+          </Typography>
+          <Typography sx={{ mb: 2, fontSize: "14px", color: "#777" }}>
+            Enter the year description and click <strong>Save</strong> to add it.
+          </Typography>
+          <input
+            type="text"
+            placeholder="Enter year (e.g., 2026)"
+            value={yearDescription}
+            onChange={(e) => setYearDescription(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "6px",
+              border: "1px solid #ccc",
+              marginBottom: "15px",
+              fontSize: "16px",
+            }}
+          />
           <button
             onClick={handleSubmit}
             style={{
               width: "100%",
               padding: "12px",
-              backgroundColor: "#1967d2",
-
+              backgroundColor: settings?.header_color || "#1976d2",
               color: "white",
               fontSize: "16px",
               border: "none",
-              borderRadius: "5px",
+              borderRadius: "6px",
               cursor: "pointer",
+              fontWeight: "bold",
+              transition: "0.3s",
             }}
+            onMouseOver={(e) => (e.target.style.backgroundColor = "#1459b5")}
+            onMouseOut={(e) => (e.target.style.backgroundColor = settings?.header_color || "#1976d2")}
           >
-            Save
+            Save Year
           </button>
         </Box>
 
-        {/* Display Section */}
+        {/* Table Card */}
         <Box
           sx={{
-            width: "100%",
-            maxWidth: "48%",
-            padding: "20px",
-            border: `2px solid ${borderColor}`, // ✅ dynamic border
-            borderRadius: "8px",
-            backgroundColor: "white",
-            boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+            flex: 1,
+            border: `2px solid ${borderColor}`,
+            borderRadius: "12px",
+            backgroundColor: "#fff",
+            boxShadow: "0 3px 10px rgba(0,0,0,0.1)",
+            p: 3,
           }}
         >
-          <Typography sx={{ display: "block", marginBottom: "8px", color: "maroon", fontWeight: "bold" }}>
+          <Typography sx={{ color: subtitleColor, fontWeight: "bold", mb: 2, fontSize: "18px" }}>
             Saved Years
           </Typography>
-
-          <Box sx={{ maxHeight: "400px", overflowY: "auto" }}>
-            <ul style={{ listStyleType: "disc", paddingLeft: "20px" }}>
-              {years.map((year) => (
-                <li key={year.year_id} style={{ marginBottom: "10px" }}>
-                  {year.year_description} {year.status === 1 ? "(Active)" : ""}
-                </li>
-              ))}
-            </ul>
-          </Box>
+          <table
+            className="w-full border border-gray-300"
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              border: `2px solid ${borderColor}`,
+              textAlign: "center",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>
+                <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Year</th>
+                <th style={{ border: `2px solid ${borderColor}`, padding: "10px" }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {years.length > 0 ? (
+                years.map((year) => (
+                  <tr key={year.year_id}>
+                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                      {year.year_description}
+                    </td>
+                    <td style={{ border: `2px solid ${borderColor}`, padding: "8px" }}>
+                      {year.status === 1 ? (
+                        <span style={{ color: "green", fontWeight: "bold" }}>Active</span>
+                      ) : (
+                        <span style={{ color: "gray" }}>Inactive</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="2" style={{ padding: "15px", color: "#777" }}>
+                    No year records found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </Box>
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -8376,6 +8376,7 @@ function timeToMinutes(timeStr) {
 }
 
 //CHECK CONFLICT
+//CHECK CONFLICT
 app.post("/api/check-conflict", async (req, res) => {
   const { day, start_time, end_time, section_id, school_year_id, prof_id, room_id, subject_id } = req.body;
 
@@ -8464,6 +8465,8 @@ app.post("/api/check-conflict", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
 
 // ✅ Check conflict API
 app.post("/api/check-time", async (req, res) => {
@@ -8603,6 +8606,7 @@ app.post("/api/insert-schedule", async (req, res) => {
     res.status(500).json({ error: "Failed to insert schedule" });
   }
 });
+
 
 // GET STUDENTS THAT HAVE NO STUDENT NUMBER (UPDATED!)
 app.get("/api/persons", async (req, res) => {
@@ -10228,21 +10232,33 @@ app.get("/api/course_count/:id", async (req, res) => {
 
   try {
     const [rows] = await db3.execute(`
-    SELECT 
-      COUNT(es.course_id) AS initial_course,
-      SUM(CASE WHEN es.en_remarks = 1 THEN 1 ELSE 0 END) AS passed_course,
-      SUM(CASE WHEN es.en_remarks = 2 THEN 1 ELSE 0 END) AS failed_course,
-      SUM(CASE WHEN es.en_remarks = 3 THEN 1 ELSE 0 END) AS inc_course
-    FROM enrolled_subject AS es
+      SELECT 
+        COUNT(es.course_id) AS initial_course,
+        CASE 
+          WHEN SUM(CASE WHEN es.fe_status = 1 THEN 1 ELSE 0 END) = COUNT(es.course_id) 
+          THEN SUM(CASE WHEN es.en_remarks = 1 THEN 1 ELSE 0 END) 
+          ELSE 0
+        END AS passed_course,
+        CASE 
+          WHEN SUM(CASE WHEN es.fe_status = 1 THEN 1 ELSE 0 END) = COUNT(es.course_id) 
+          THEN SUM(CASE WHEN es.en_remarks = 2 THEN 1 ELSE 0 END) 
+          ELSE 0
+        END AS failed_course,
+        CASE 
+          WHEN SUM(CASE WHEN es.fe_status = 1 THEN 1 ELSE 0 END) = COUNT(es.course_id) 
+          THEN SUM(CASE WHEN es.en_remarks = 3 THEN 1 ELSE 0 END) 
+          ELSE 0
+        END AS inc_course
+      FROM enrolled_subject AS es
       JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
       JOIN person_table AS pt ON snt.person_id = pt.person_id
-    WHERE pt.person_id = ?
-`, [id]);
+      WHERE pt.person_id = ?
+    `, [id]);
 
     res.json(rows[0] || { initial_course: 0 });
     console.log(rows);
   } catch (error) {
-    console.error("Error fetching person:", error);
+    console.error("Error fetching course count:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
@@ -10332,6 +10348,8 @@ app.get("/api/student_schedule/:id", async (req, res) => {
 
 /* Student Grade Page */
 //DISPLAY ALL Student's Grade
+/* Student Grade Page */
+//DISPLAY ALL Student's Grade
 app.get("/api/student_grade/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -10397,14 +10415,6 @@ app.get("/api/student_grade/:id", async (req, res) => {
     }
 
     let responseRows = rows;
-    if (pending[0].total_professors > 0) {
-      responseRows = rows.map(r => ({
-        ...r,
-        final_grade: r.fe_status === 1 ? r.final_grade : null,
-        en_remarks: r.fe_status === 1 ? r.en_remarks : null
-      }));
-    }
-
     res.json(responseRows);
 
   } catch (error) {
@@ -10412,6 +10422,8 @@ app.get("/api/student_grade/:id", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+
 
 //GET Grading Status Period
 app.get("/api/grading_status", async (req, res) => {
@@ -10437,25 +10449,6 @@ app.get("/api/student/view_latest_grades/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Count professors not yet evaluated
-    const [pending] = await db3.execute(`
-      SELECT COUNT(DISTINCT es.course_id) AS total_professors 
-      FROM enrolled_subject AS es
-      JOIN student_numbering_table AS snt ON es.student_number = snt.student_number
-      LEFT JOIN time_table AS tt 
-        ON tt.course_id = es.course_id 
-       AND tt.department_section_id = es.department_section_id
-      WHERE es.fe_status = 0 AND snt.person_id = ?
-    `, [id]);
-
-    if (!pending || pending[0].total_professors === 0) {
-      return res.json({
-        status: "not-available",
-        message: "Grades cannot be revealed yet. No professors assigned.",
-        grades: []
-      });
-    }
-
     const [courses] = await db3.execute(`
       SELECT DISTINCT 
         ct.course_description, 
@@ -10499,31 +10492,14 @@ app.get("/api/student/view_latest_grades/:id", async (req, res) => {
       WHERE pt.person_id = ?
     `, [id]);
 
-    if (pending[0].total_professors > 0) {
-      const maskedCourses = courses.map(c => {
-        if (c.fe_status === 1) {
-          return c;
-        }
-        return {
-          ...c,
-          final_grade: null,
-          en_remarks: null
-        };
-      });
-
-      return res.json({
-        status: "incomplete",
-        message: `Please Do Faculty Evaluation, Remaining Professor To Evaluate: ${pending[0].total_professors}`,
-        grades: maskedCourses
-      });
-    }
-
     res.json({ status: "ok", grades: courses });
+
   } catch (error) {
     console.error("Error fetching grades:", error);
     res.status(500).json({ error: "Database error" });
   }
 });
+
 /* Faculty Evaluation (Student Side) */
 app.get("/api/student_course/:id", async (req, res) => {
   const { id } = req.params;
@@ -10605,13 +10581,14 @@ app.get("/api/student/faculty_evaluation/answer/:course_id/:prof_id/:curriculum_
 }
 );
 
+// UPDATE 2:53PM 211/12/2025
 app.get("/api/get/all_schedule/:roomID", async (req, res) => {
   const { roomID } = req.params;
-  console.log("RoomID:", roomID);
 
   try {
     const scheduleQuery = `
       SELECT 
+        tt.id,
         tt.room_day, 
         rdt.description AS day_description, 
         tt.school_time_start, 
@@ -10647,6 +10624,72 @@ app.get("/api/get/all_schedule/:roomID", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+
+app.delete("/api/delete/schedule/:scheduleId", async (req, res) => {
+  const { scheduleId } = req.params;
+  console.log("Room Id: ", scheduleId);
+
+  try {
+    const deleteQuery = `DELETE FROM time_table WHERE id = ?`;
+    const [result] = await db3.execute(deleteQuery, [scheduleId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Schedule not found." });
+    }
+
+    res.json({ message: "Schedule deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting schedule:", error);
+    res.status(500).json({ error: "Database error while deleting schedule." });
+  }
+});
+
+//SCHEDULE CHECKER
+app.post("/api/check-subject", async (req, res)  => {
+  const { section_id, school_year_id, subject_id, day_of_week } = req.body;
+
+  if (!section_id || !school_year_id || !subject_id || !day_of_week) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  const query = `
+    SELECT * FROM time_table 
+    WHERE department_section_id = ? 
+      AND school_year_id = ? 
+      AND course_id = ?
+      AND room_day = ?
+  `;
+
+  try {
+    const [result] = await db3.query(query, [section_id, school_year_id, subject_id, day_of_week]);
+
+    if (result.length > 0) {
+      return res.json({ exists: true });
+    } else {
+      return res.json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Database query error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+//HELPER FUNCTION 
+function timeToMinutes(timeStr) {
+  const parts = timeStr.trim().split(" ");
+  let [hours, minutes] = parts[0].split(":").map(Number);
+  const modifier = parts[1] ? parts[1].toUpperCase() : null;
+
+  if (modifier) {
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+  }
+
+  return hours * 60 + minutes;
+}
+
+
 
 //Get Section List From Selected Department
 app.get("/section_table/:dprtmnt_id", async (req, res) => {

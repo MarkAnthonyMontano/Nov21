@@ -1,75 +1,51 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { SettingsContext } from "../App";
 import axios from "axios";
-import { Box, Typography, Button, TextField } from "@mui/material";
+import { Box, Typography, Button, TextField, Snackbar, Alert } from "@mui/material";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
 
 const YearLevelPanel = () => {
-
   const settings = useContext(SettingsContext);
 
   const [titleColor, setTitleColor] = useState("#000000");
   const [subtitleColor, setSubtitleColor] = useState("#555555");
   const [borderColor, setBorderColor] = useState("#000000");
-  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
 
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
-  const [campusAddress, setCampusAddress] = useState("");
-
-  useEffect(() => {
-    if (!settings) return;
-
-    // 🎨 Colors
-    if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-    if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
-
-    // 🏫 Logo
-    if (settings.logo_url) {
-      setFetchedLogo(`http://localhost:5000${settings.logo_url}`);
-    } else {
-      setFetchedLogo(EaristLogo);
-    }
-
-    // 🏷️ School Information
-    if (settings.company_name) setCompanyName(settings.company_name);
-    if (settings.short_term) setShortTerm(settings.short_term);
-    if (settings.campus_address) setCampusAddress(settings.campus_address);
-
-  }, [settings]);
-
-  // Also put it at the very top
   const [userID, setUserID] = useState("");
-  const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
-
+  const [employeeID, setEmployeeID] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
 
-
   const pageId = 66;
 
-  const [employeeID, setEmployeeID] = useState("");
+  const [yearLevelDescription, setYearLevelDescription] = useState("");
+  const [yearLevelList, setYearLevelList] = useState([]);
+
+  // 🌟 Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
+    if (!settings) return;
+    if (settings.title_color) setTitleColor(settings.title_color);
+    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+    if (settings.border_color) setBorderColor(settings.border_color);
+  }, [settings]);
 
+  useEffect(() => {
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
       setUserID(storedID);
+      setUserRole(storedRole);
       setEmployeeID(storedEmployeeID);
 
       if (storedRole === "registrar") {
@@ -83,34 +59,18 @@ const YearLevelPanel = () => {
   }, []);
 
   const checkAccess = async (employeeID) => {
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
-    } catch (error) {
-      console.error('Error checking access:', error);
+      setHasAccess(response.data?.page_privilege === 1);
+    } catch (err) {
+      console.error("Error checking access:", err);
       setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
+      setSnackbar({ open: true, message: "Failed to check access", severity: "error" });
+    } finally {
       setLoading(false);
     }
   };
-
-
-
-
-  const [yearLevelDescription, setYearLevelDescription] = useState("");
-  const [yearLevelList, setYearLevelList] = useState([]);
-
-  useEffect(() => {
-    fetchYearLevelList();
-  }, []);
 
   const fetchYearLevelList = async () => {
     try {
@@ -118,12 +78,17 @@ const YearLevelPanel = () => {
       setYearLevelList(res.data);
     } catch (err) {
       console.error("Failed to fetch year levels:", err);
+      setSnackbar({ open: true, message: "Failed to fetch year levels", severity: "error" });
     }
   };
 
+  useEffect(() => {
+    fetchYearLevelList();
+  }, []);
+
   const handleAddYearLevel = async () => {
     if (!yearLevelDescription.trim()) {
-      alert("Year level description is required");
+      setSnackbar({ open: true, message: "Year level description is required", severity: "warning" });
       return;
     }
 
@@ -133,95 +98,57 @@ const YearLevelPanel = () => {
       });
       setYearLevelDescription("");
       fetchYearLevelList();
+      setSnackbar({ open: true, message: "Year level added successfully!", severity: "success" });
     } catch (err) {
       console.error("Error adding year level:", err);
+      setSnackbar({ open: true, message: "Failed to add year level", severity: "error" });
     }
   };
 
-  // 🔒 Disable right-click
-  document.addEventListener('contextmenu', (e) => e.preventDefault());
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
-  // 🔒 Block DevTools shortcuts + Ctrl+P silently
-  document.addEventListener('keydown', (e) => {
-    const isBlockedKey =
-      e.key === 'F12' || // DevTools
-      e.key === 'F11' || // Fullscreen
-      (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j')) || // Ctrl+Shift+I/J
-      (e.ctrlKey && e.key.toLowerCase() === 'u') || // Ctrl+U (View Source)
-      (e.ctrlKey && e.key.toLowerCase() === 'p');   // Ctrl+P (Print)
+  // 🔒 Disable right-click & DevTools
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      const isBlockedKey =
+        e.key === "F12" ||
+        e.key === "F11" ||
+        (e.ctrlKey && e.shiftKey && ["i", "j"].includes(e.key.toLowerCase())) ||
+        (e.ctrlKey && ["u", "p"].includes(e.key.toLowerCase()));
+      if (isBlockedKey) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
 
-    if (isBlockedKey) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
+    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-
-
-  // Put this at the very bottom before the return 
-  if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Check Access" />;
-  }
-
-  if (!hasAccess) {
-    return (
-      <Unauthorized />
-    );
-  }
+  if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Check Access" />;
+  if (!hasAccess) return <Unauthorized />;
 
   return (
     <Box sx={{ height: "calc(100vh - 150px)", overflowY: "auto", paddingRight: 1, backgroundColor: "transparent" }}>
-
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-
-          mb: 2,
-
-        }}
-      >
-        <Typography
-          variant="h4"
-          sx={{
-            fontWeight: 'bold',
-            color: titleColor,
-            fontSize: '36px',
-          }}
-        >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: titleColor, fontSize: '36px' }}>
           YEAR LEVEL PANEL
         </Typography>
-
-
-
-
       </Box>
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
-
       <br />
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          gap: 4,
-          mt: 4,
-        }}
-      >
+      <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 4, mt: 4 }}>
         {/* Form Section */}
-        <Box
-          sx={{
-            flex: 1,
-            p: 3,
-            bgcolor: "#fff",
-            border: `2px solid ${borderColor}`,
-            boxShadow: 2,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h6" gutterBottom sx={{ color: subtitleColor, }}>
+        <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", border: `2px solid ${borderColor}`, boxShadow: 2, borderRadius: 2 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: subtitleColor }}>
             Add Year Level
           </Typography>
           <TextField
@@ -234,8 +161,7 @@ const YearLevelPanel = () => {
           <Button
             fullWidth
             variant="contained"
-            sx={{ mt: 2, backgroundColor: "1967d2", ":hover": { bgcolor: "#000000" } }}
-
+            sx={{ mt: 2, backgroundColor: "#1967d2", ":hover": { bgcolor: "#000000" } }}
             onClick={handleAddYearLevel}
           >
             Save
@@ -243,19 +169,8 @@ const YearLevelPanel = () => {
         </Box>
 
         {/* Display Section */}
-        <Box
-          sx={{
-            flex: 1,
-            p: 3,
-            bgcolor: "#fff",
-            boxShadow: 2,
-            borderRadius: 2,
-            border: `2px solid ${borderColor}`,
-            overflowY: "auto",
-            maxHeight: 500,
-          }}
-        >
-          <Typography variant="h6" gutterBottom sx={{ color: subtitleColor, }}>
+        <Box sx={{ flex: 1, p: 3, bgcolor: "#fff", boxShadow: 2, borderRadius: 2, border: `2px solid ${borderColor}`, overflowY: "auto", maxHeight: 500 }}>
+          <Typography variant="h6" gutterBottom sx={{ color: subtitleColor }}>
             Registered Year Levels
           </Typography>
           <Box sx={{ overflowY: "auto", maxHeight: 400 }}>
@@ -270,9 +185,7 @@ const YearLevelPanel = () => {
                 {yearLevelList.map((level, index) => (
                   <tr key={index}>
                     <td style={styles.tableCell}>{level.year_level_id}</td>
-                    <td style={styles.tableCell}>
-                      {level.year_level_description}
-                    </td>
+                    <td style={styles.tableCell}>{level.year_level_description}</td>
                   </tr>
                 ))}
               </tbody>
@@ -280,6 +193,18 @@ const YearLevelPanel = () => {
           </Box>
         </Box>
       </Box>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

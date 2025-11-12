@@ -1208,7 +1208,7 @@ Congratulations on passing the Interview/Qualifying Exam!
 Please follow the steps below to complete your Admission process:
 
 1. Proceed to the Clinic for your Medical Examination.  
-   - Bring and present your Medical Examination Permit for verification of fitness to enroll.
+   - Bring and present your Admission Form Process so they can verify if you're eligible to take the Medical Examination.
 
 2. After completing your Medical Examination, proceed to the Registrar’s Office to submit your Original Documents within 7 days.  
    - Submissions are accepted only during working hours, Monday to Friday, from 7:00 AM to 4:00 PM.
@@ -1217,8 +1217,7 @@ Please follow the steps below to complete your Admission process:
 
 This email is valid until ${formattedValidUntil}.
 
-Thank you,  
-${companyName} Registrar’s Office
+Thank you, best regards
 `.trim();
 
 
@@ -1553,7 +1552,7 @@ ${companyName} Registrar’s Office
                                     alignItems: "center",
                                     gap: "8px",
                                     userSelect: "none",
-                                    width: "275px", // ✅ same width as Import
+                                    width: "315px", // ✅ same width as Import
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#d3d3d3"}
                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#f0f0f0"}
@@ -1562,7 +1561,7 @@ ${companyName} Registrar’s Office
                                 type="button"
                             >
                                 <FcPrint size={20} />
-                                Print Qualfying Examination Scores
+                                Print Qualfying / Interview Scores
                             </button>
                         </Box>
 

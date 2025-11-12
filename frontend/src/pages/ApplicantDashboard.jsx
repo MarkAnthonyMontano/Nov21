@@ -1389,7 +1389,7 @@ const ApplicantDashboard = (props) => {
 
                       {interviewSchedule && (
                         <>
-                          👤 Interviewer: {interviewSchedule.interviewer || "TBA"} <br />
+              
                           📅 Date: {formatDate(interviewSchedule?.day_description)} <br />
                           🏫 Building: {interviewSchedule.building_description || "TBA"} <br />
                           🏷️ Room: {interviewSchedule.room_description || "TBA"} <br />

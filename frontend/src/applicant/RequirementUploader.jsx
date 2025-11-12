@@ -415,10 +415,11 @@ const RequirementUploader = () => {
           {/* Text */}
           <Typography
             sx={{
-              fontSize: "15px",
+              fontSize: "20px",
               fontFamily: "Arial",
               color: "#3e3e3e",
               textAlign: "center",
+              letterSpacing: "2px"
             }}
           >
             <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;

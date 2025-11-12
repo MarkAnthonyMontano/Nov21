@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from "framer-motion";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import ExamPermit from "../applicant/ExamPermit";
+import { Snackbar, Alert } from "@mui/material";
 
 
 const Dashboard1 = (props) => {
@@ -116,6 +117,10 @@ const Dashboard1 = (props) => {
     permanentMunicipality: "",
     permanentDswdHouseholdNumber: "",
   });
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const handleCloseSnackbar = () => setSnackbar((prev) => ({ ...prev, open: false }));
+
 
   // do not alter
   useEffect(() => {
@@ -319,7 +324,7 @@ const Dashboard1 = (props) => {
 
     // Check file type
     if (!validTypes.includes(file.type)) {
-      alert("Invalid file type. Please select a JPEG or PNG file.");
+      setSnackbar({ open: true, message: "Invalid file type. Please select a JPEG or PNG file.", severity: "error" });
       setSelectedFile(null);
       setPreview(null);
       return;
@@ -327,7 +332,7 @@ const Dashboard1 = (props) => {
 
     // Check file size
     if (file.size > maxSizeInBytes) {
-      alert("File is too large. Maximum allowed size is 2MB.");
+      setSnackbar({ open: true, message: "File is too large. Maximum allowed size is 2MB.", severity: "error" });
       setSelectedFile(null);
       setPreview(null);
       return;
@@ -342,7 +347,7 @@ const Dashboard1 = (props) => {
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      alert("Please select a file first.");
+      setSnackbar({ open: true, message: "Please select a file first.", severity: "warning" });
       return;
     }
 
@@ -371,11 +376,11 @@ const Dashboard1 = (props) => {
       await handleUpdate(updatedPerson); // ✅ this pushes the profile_img change into DB
 
       setUploadedImage(`http://localhost:5000/uploads/${fileName}`);
-      alert("Upload successful!");
+      setSnackbar({ open: true, message: "Upload successful!", severity: "success" });
       handleClose();
     } catch (error) {
       console.error("Upload failed:", error);
-      alert("Upload failed.");
+      setSnackbar({ open: true, message: "Upload failed.", severity: "error" });
     }
   };
 
@@ -731,13 +736,11 @@ const Dashboard1 = (props) => {
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
           justifyContent: "center",
           width: "100%",
           mt: 2,
         }}
       >
-
         <Box
           sx={{
             display: "flex",
@@ -748,7 +751,8 @@ const Dashboard1 = (props) => {
             backgroundColor: "#fffaf5",
             border: "1px solid #6D2323",
             boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-            whiteSpace: "nowrap", // Prevent text wrapping
+            width: "100%",
+            overflow: "hidden",
           }}
         >
           {/* Icon */}
@@ -757,22 +761,25 @@ const Dashboard1 = (props) => {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "#6D2323",
+              backgroundColor: "#800000",
               borderRadius: "8px",
-              width: 40,
-              height: 40,
+              width: 50,
+              height: 50,
               flexShrink: 0,
             }}
           >
-            <ErrorIcon sx={{ color: "white", fontSize: 28 }} />
+            <ErrorIcon sx={{ color: "white", fontSize: 36 }} />
           </Box>
 
-          {/* Text in one row */}
+          {/* Text */}
           <Typography
             sx={{
-              fontSize: "15px",
+              fontSize: "20px",
               fontFamily: "Arial",
               color: "#3e3e3e",
+              lineHeight: 1.3, // slightly tighter to fit in fewer rows
+              whiteSpace: "normal",
+              overflow: "hidden",
             }}
           >
             <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
@@ -782,6 +789,7 @@ const Dashboard1 = (props) => {
           </Typography>
         </Box>
       </Box>
+
       {/* Cards Section */}
       <Box
         sx={{
@@ -2653,6 +2661,16 @@ const Dashboard1 = (props) => {
               </Button>
             </Box>
 
+            <Snackbar
+              open={snackbar.open}
+              autoHideDuration={3000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
 
           </Container>
         </form>

@@ -89,11 +89,48 @@ const StudentGradingPage = () => {
   const fetchStudentGrade = async (id) => {
     try {
       const res = await axios.get(`http://localhost:5000/api/student_grade/${id}`);
-      setStudentGrade(res.data);
+      const data = res.data;
+
+      // 🧩 Group grades by term
+      const groupedByTerm = {};
+      data.forEach(subj => {
+        const termKey = `${subj.first_year}-${subj.last_year} ${subj.semester_description}`;
+        if (!groupedByTerm[termKey]) groupedByTerm[termKey] = [];
+        groupedByTerm[termKey].push(subj);
+      });
+
+      // 🧠 Process each term: if all fe_status == 0, hide grades and remarks
+      const processedGrades = Object.values(groupedByTerm).flatMap(termSubjects => {
+        const allReleased = termSubjects.every(s => s.fe_status === 1); // all grades released
+        if (!allReleased) {
+          // Hide all grades if not all released
+          return termSubjects.map(s => ({
+            ...s,
+            final_grade: null,
+            en_remarks: null
+          }));
+        }
+        // Otherwise, show grades as-is
+        return termSubjects;
+      });
+
+      setStudentGrade(processedGrades);
     } catch (error) {
-      console.error(error)
+      console.error(error);
     }
   };
+
+  useEffect(() => {
+    if (!gradingActive || studentGrade.length === 0) return;
+
+    const pending = studentGrade.filter(subj => subj.fe_status === 0).length;
+
+    if (pending > 0) {
+      setMessage(`Grades are available. Please evaluate all your professors. Remaining: ${pending}`);
+    } else {
+      viewGrade();
+    }
+  }, [gradingActive, studentGrade]);
 
   const fetchGradingStatus = async () => {
     try {
@@ -126,18 +163,15 @@ const StudentGradingPage = () => {
     }
   };
 
+  
+
   const viewGrade = async () => {
     try {
       const res = await axios.get(`http://localhost:5000/api/student/view_latest_grades/${userID}`);
 
-      if (res.data.status === "incomplete") {
-        setMessage(res.data.message);
-        setStudentGrade(res.data.grades);
-      } else if (res.data.status === "ok") {
+      if (res.data.status === "ok") {
         setMessage("");
         setStudentGrade(res.data.grades);
-      } else if (res.data.status === "not-available") {
-        setMessage(res.data.message);
       } else {
         setMessage(res.data.message || "No grades available");
         setStudentGrade([]);
@@ -146,6 +180,14 @@ const StudentGradingPage = () => {
       console.error("Failed to fetch grades:", err);
       setMessage("Error fetching grades.");
     }
+  };
+
+  const getUnitDisplay = (row) => {
+    const { course_unit, lab_unit } = row;
+    if (course_unit === 0 && lab_unit === 0) return "";
+    if (course_unit === 0) return lab_unit;
+    if (lab_unit === 0) return course_unit;
+    return course_unit + lab_unit;
   };
 
 // 🔒 Disable right-click
@@ -205,20 +247,6 @@ const StudentGradingPage = () => {
               ? "The grades can now be viewed."
               : "The grades are not yet available."}
           </Typography>
-          <Button
-            variant="contained"
-            disabled={!gradingActive}
-            onClick={viewGrade}
-            sx={{
-              bgcolor: "maroon",
-              textTransform: "none",
-              px: 3,
-              fontWeight: 500,
-              "&:hover": { bgcolor: "red" },
-            }}
-          >
-            View Latest Grade
-          </Button>
         </Box>
       </Box>
 
@@ -248,13 +276,12 @@ const StudentGradingPage = () => {
                 <Table size="small">
                   <TableHead sx={{ bgcolor: "#f5f5f5" }}>
                     <TableRow>
-                      <TableCell style={{ border: `2px solid ${borderColor}`,}} ><strong>Code</strong></TableCell>
-                      <TableCell style={{ border: `2px solid ${borderColor}`,}}><strong>Subject</strong></TableCell>
-                      <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center"><strong>Faculty Name</strong></TableCell>
-                      <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center"><strong>Units</strong></TableCell>
-                      <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center"><strong>Section</strong></TableCell>
+                      <TableCell style={{ border: `2px solid ${borderColor}`, width: "150px", minWidth: "150px", maxWidth: "150px", overflow: "hidden",}} ><strong>Code</strong></TableCell>
+                      <TableCell style={{ border: `2px solid ${borderColor}`, width: "45rem", minWidth: "45rem", maxWidth: "45rem", overflow: "hidden"}}><strong>Subject</strong></TableCell>
+                      <TableCell style={{ border: `2px solid ${borderColor}`, width: "15rem", minWidth: "15rem", maxWidth: "15rem", overflow: "hidden"}} align="center"><strong>Faculty Name</strong></TableCell>
+                      <TableCell style={{ border: `2px solid ${borderColor}`, width: "5rem", minWidth: "5rem", maxWidth: "5rem", overflow: "hidden"}} align="center"><strong>Units</strong></TableCell>
+                      <TableCell style={{ border: `2px solid ${borderColor}`, width: "10rem", minWidth: "10rem", maxWidth: "10rem", overflow: "hidden"}} align="center"><strong>Section</strong></TableCell>
                       <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center"><strong>Final Grade</strong></TableCell>
-
                       <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center"><strong>Status</strong></TableCell>
                     </TableRow>
                   </TableHead>
@@ -263,20 +290,20 @@ const StudentGradingPage = () => {
                       .filter(row => `${row.first_year}-${row.last_year} ${row.semester_description}` === term)
                       .map((row, i) => (
                         <TableRow key={i} hover>
-                          <TableCell style={{ border: `2px solid ${borderColor}`,}}>{row.course_code}</TableCell>
-                          <TableCell style={{ border: `2px solid ${borderColor}`,}}>{row.course_description}</TableCell>
-                          <TableCell sx={{ border: `2px solid ${borderColor}`,}}>
+                          <TableCell style={{ border: `2px solid ${borderColor}`, width: "150px", minWidth: "150px", maxWidth: "150px", overflow: "hidden" }}>{row.course_code}</TableCell>
+                          <TableCell style={{ border: `2px solid ${borderColor}`, width: "45rem", minWidth: "45rem", maxWidth: "45rem", overflow: "hidden"}}>{row.course_description}</TableCell>
+                          <TableCell sx={{ border: `2px solid ${borderColor}`, width: "15rem", minWidth: "15rem", maxWidth: "15rem", overflow: "hidden"}}>
                             {row.fname === "TBA" && row.lname === "TBA"
                               ? "TBA"
                               : `Prof. ${row.fname} ${row.lname}`}
                           </TableCell>
-                          <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center">
-                            {row.course_unit}
+                          <TableCell style={{ border: `2px solid ${borderColor}`, width: "5rem", minWidth: "5rem", maxWidth: "5rem", overflow: "hidden"}} align="center">
+                            {getUnitDisplay(row)}
                           </TableCell>
-                          <TableCell style={{ border: `2px solid ${borderColor}`,}}>
+                          <TableCell style={{ border: `2px solid ${borderColor}`, width: "10rem", minWidth: "10rem", maxWidth: "10rem", overflow: "hidden"}}>
                             {row.program_code}-{row.section_description}
                           </TableCell>
-                          <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center">
+                          <TableCell style={{ border: `2px solid ${borderColor}`, width: "8rem", minWidth: "8rem", maxWidth: "8rem", overflow: "hidden"}} align="center">
                             {row.final_grade ?? ""}
                           </TableCell>
                           <TableCell style={{ border: `2px solid ${borderColor}`,}} align="center">
@@ -284,7 +311,89 @@ const StudentGradingPage = () => {
                           </TableCell>
                         </TableRow>
                       ))}
-                  </TableBody>
+                      {(() => {
+                        // Group The Subject by term
+                        const termGrades = studentGrade.filter(
+                          row => `${row.first_year}-${row.last_year} ${row.semester_description}` === term
+                        );
+                        // Calculate the Computed Grades per Subject
+                        const computedGrades = termGrades
+                          .map(row => {
+                            const grade = parseFloat(row.final_grade);
+                            if (isNaN(grade)) return null;
+
+                            const units =
+                              row.course_unit === 0 && row.lab_unit === 0
+                                ? 0
+                                : row.course_unit === 0
+                                ? row.lab_unit
+                                : row.lab_unit === 0
+                                ? row.course_unit
+                                : row.course_unit + row.lab_unit;
+
+                            return { CG: grade * units, units };
+                          })
+                          .filter(item => item && item.units > 0);
+
+                        // Calculate the Total Units per term
+                        const totalUnits = computedGrades.reduce((sum, item) => sum + item.units, 0);
+
+                        // Calculate the Total Computed Grade per term
+                        const totalComputedGrade = computedGrades.reduce((sum, item) => sum + item.CG, 0);
+
+                        // Divide natin TCG at TU to get the GWA
+                        const gwa =
+                          totalUnits > 0 ? (totalComputedGrade / totalUnits).toFixed(2) : "";
+
+                        return (
+                          <TableRow>
+                            <TableCell
+                              style={{
+                                border: `2px solid ${borderColor}`,
+                                width: "8rem",
+                                minWidth: "8rem",
+                                maxWidth: "8rem",
+                                fontWeight: "bold",
+                                backgroundColor: "#f9f9f9",
+                              }}
+                              colSpan={4}
+                            ></TableCell>
+                            <TableCell
+                              style={{
+                                border: `2px solid ${borderColor}`,
+                                fontWeight: "bold",
+                                backgroundColor: "#f9f9f9",
+                              }}
+                              align="center"
+                            >
+                              GWA
+                            </TableCell>
+                            <TableCell
+                              style={{
+                                border: `2px solid ${borderColor}`,
+                                width: "8rem",
+                                minWidth: "8rem",
+                                maxWidth: "8rem",
+                                fontWeight: "bold",
+                                backgroundColor: "#f9f9f9",
+                              }}
+                              align="center"
+                            >
+                              {gwa}
+                            </TableCell>
+                            <TableCell
+                              style={{
+                                border: `2px solid ${borderColor}`,
+                                fontWeight: "bold",
+                                backgroundColor: "#f9f9f9",
+                              }}
+                              align="center"
+                            ></TableCell>
+                          </TableRow>
+                        );
+                      })()}
+
+                    </TableBody>
 
                 </Table>
               </TableContainer>

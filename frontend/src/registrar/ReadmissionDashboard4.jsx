@@ -597,7 +597,6 @@ const ReadmissionDashboard4 = () => {
             <Box
                 sx={{
                     display: "flex",
-                    alignItems: "center",
                     justifyContent: "center",
                     width: "100%",
                     mt: 2,
@@ -613,7 +612,8 @@ const ReadmissionDashboard4 = () => {
                         backgroundColor: "#fffaf5",
                         border: "1px solid #6D2323",
                         boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-                        whiteSpace: "nowrap", // Prevent text wrapping
+                        width: "100%",
+                        overflow: "hidden",
                     }}
                 >
                     {/* Icon */}
@@ -622,22 +622,25 @@ const ReadmissionDashboard4 = () => {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            backgroundColor: "#6D2323",
+                            backgroundColor: "#800000",
                             borderRadius: "8px",
-                            width: 40,
-                            height: 40,
+                            width: 50,
+                            height: 50,
                             flexShrink: 0,
                         }}
                     >
-                        <ErrorIcon sx={{ color: "white", fontSize: 28 }} />
+                        <ErrorIcon sx={{ color: "white", fontSize: 36 }} />
                     </Box>
 
-                    {/* Text in one row */}
+                    {/* Text */}
                     <Typography
                         sx={{
-                            fontSize: "15px",
+                            fontSize: "20px",
                             fontFamily: "Arial",
                             color: "#3e3e3e",
+                            lineHeight: 1.3, // slightly tighter to fit in fewer rows
+                            whiteSpace: "normal",
+                            overflow: "hidden",
                         }}
                     >
                         <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
@@ -647,6 +650,7 @@ const ReadmissionDashboard4 = () => {
                     </Typography>
                 </Box>
             </Box>
+
 
             {/* Cards Section */}
 

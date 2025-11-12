@@ -122,50 +122,50 @@ const RegistrarDashboard5 = () => {
 
     const pageId = 50;
 
-     const [employeeID, setEmployeeID] = useState("");
+    const [employeeID, setEmployeeID] = useState("");
 
-  useEffect(() => {
+    useEffect(() => {
 
-    const storedUser = localStorage.getItem("email");
-    const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
-    const storedEmployeeID = localStorage.getItem("employee_id");
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const storedID = localStorage.getItem("person_id");
+        const storedEmployeeID = localStorage.getItem("employee_id");
 
-    if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
-      setUserID(storedID);
-      setEmployeeID(storedEmployeeID);
+        if (storedUser && storedRole && storedID) {
+            setUser(storedUser);
+            setUserRole(storedRole);
+            setUserID(storedID);
+            setEmployeeID(storedEmployeeID);
 
-      if (storedRole === "registrar") {
-        checkAccess(storedEmployeeID);
-      } else {
-        window.location.href = "/login";
-      }
-    } else {
-      window.location.href = "/login";
-    }
-  }, []);
+            if (storedRole === "registrar") {
+                checkAccess(storedEmployeeID);
+            } else {
+                window.location.href = "/login";
+            }
+        } else {
+            window.location.href = "/login";
+        }
+    }, []);
 
-  const checkAccess = async (employeeID) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
-    } catch (error) {
-      console.error('Error checking access:', error);
-      setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
-      setLoading(false);
-    }
-  };
+    const checkAccess = async (employeeID) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
+            if (response.data && response.data.page_privilege === 1) {
+                setHasAccess(true);
+            } else {
+                setHasAccess(false);
+            }
+        } catch (error) {
+            console.error('Error checking access:', error);
+            setHasAccess(false);
+            if (error.response && error.response.data.message) {
+                console.log(error.response.data.message);
+            } else {
+                console.log("An unexpected error occurred.");
+            }
+            setLoading(false);
+        }
+    };
 
 
 
@@ -621,7 +621,7 @@ const RegistrarDashboard5 = () => {
 
             <TableContainer component={Paper} sx={{ width: '100%', mb: 1 }}>
                 <Table>
-                       <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
+                    <TableHead sx={{ backgroundColor: settings?.header_color || "#1976d2", border: `2px solid ${borderColor}`, }}>
                         <TableRow>
                             {/* Left cell: Applicant ID */}
                             <TableCell sx={{ color: 'white', fontSize: '20px', fontFamily: 'Arial Black', border: 'none' }}>
@@ -650,56 +650,63 @@ const RegistrarDashboard5 = () => {
 
 
 
-            <Box sx={{ display: "flex", width: "100%" }}>
-                {/* Left side: Notice */}
-                <Box sx={{ width: "100%", padding: "10px" }}>
+            <Box
+                sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    width: "100%",
+                    mt: 2,
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 2,
+                        p: 2,
+                        borderRadius: "10px",
+                        backgroundColor: "#fffaf5",
+                        border: "1px solid #6D2323",
+                        boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
+                        width: "100%",
+                        overflow: "hidden",
+                    }}
+                >
+                    {/* Icon */}
                     <Box
                         sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 2,
-                            p: 2,
-                            borderRadius: "10px",
-                            backgroundColor: "#fffaf5",
-                            border: "1px solid #6D2323",
-                            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.05)",
-                            whiteSpace: "nowrap", // Keep all in one row
+                            justifyContent: "center",
+                            backgroundColor: "#800000",
+                            borderRadius: "8px",
+                            width: 50,
+                            height: 50,
+                            flexShrink: 0,
                         }}
                     >
-                        {/* Icon */}
-                        <Box
-                            sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "#6D2323",
-                                borderRadius: "8px",
-                                width: 40,
-                                height: 40,
-                                flexShrink: 0,
-                            }}
-                        >
-                            <ErrorIcon sx={{ color: "white", fontSize: 28 }} />
-                        </Box>
-
-                        {/* Notice Text */}
-                        <Typography
-                            sx={{
-                                fontSize: "15px",
-                                fontFamily: "Arial",
-                                color: "#3e3e3e",
-                            }}
-                        >
-                            <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
-                            <strong>1.</strong> Kindly type <strong>'NA'</strong> in boxes where there are no possible answers to the information being requested. &nbsp; | &nbsp;
-                            <strong>2.</strong> To use the letter <strong>'Ñ'</strong>, press <kbd>ALT</kbd> + <kbd>165</kbd>; for <strong>'ñ'</strong>, press <kbd>ALT</kbd> + <kbd>164</kbd>. &nbsp; | &nbsp;
-                            <strong>3.</strong> This is the list of all printable files.
-                        </Typography>
+                        <ErrorIcon sx={{ color: "white", fontSize: 36 }} />
                     </Box>
+
+                    {/* Text */}
+                    <Typography
+                        sx={{
+                            fontSize: "20px",
+                            fontFamily: "Arial",
+                            color: "#3e3e3e",
+                            lineHeight: 1.3, // slightly tighter to fit in fewer rows
+                            whiteSpace: "normal",
+                            overflow: "hidden",
+                        }}
+                    >
+                        <strong style={{ color: "maroon" }}>Notice:</strong> &nbsp;
+                        <strong>1.</strong> Kindly type <strong>'NA'</strong> in boxes where there are no possible answers to the information being requested. &nbsp; | &nbsp;
+                        <strong>2.</strong> To use the letter <strong>'Ñ'</strong>, press <kbd>ALT</kbd> + <kbd>165</kbd>; for <strong>'ñ'</strong>, press <kbd>ALT</kbd> + <kbd>164</kbd>. &nbsp; | &nbsp;
+                        <strong>3.</strong> This is the list of all printable files.
+                    </Typography>
                 </Box>
-
-
             </Box>
+
 
             {/* Cards Section */}
 
@@ -1030,7 +1037,7 @@ const RegistrarDashboard5 = () => {
                             </Button>
                             {/* Next Step (Submit) Button */}
                             <Button
-                            disabled
+                                disabled
                                 variant="contained"
                                 onClick={(e) => {
                                     handleUpdate(); // Save data
