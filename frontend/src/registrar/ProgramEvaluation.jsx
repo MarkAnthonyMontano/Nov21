@@ -5,7 +5,8 @@ import EaristLogo from "../assets/EaristLogo.png";
 import { Search } from "@mui/icons-material";
 import axios from 'axios';
 import { FcPrint } from "react-icons/fc";
-
+import Unauthorized from "../components/Unauthorized";
+import LoadingOverlay from "../components/LoadingOverlay";
 
 const ProgramEvaluation = () => {
 
@@ -83,43 +84,58 @@ const ProgramEvaluation = () => {
         lname: "",
     });
 
+
+
+    const [hasAccess, setHasAccess] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+
+    const pageId = 100;
+
+    const [employeeID, setEmployeeID] = useState("");
+
     useEffect(() => {
+
         const storedUser = localStorage.getItem("email");
         const storedRole = localStorage.getItem("role");
         const storedID = localStorage.getItem("person_id");
+        const storedEmployeeID = localStorage.getItem("employee_id");
 
         if (storedUser && storedRole && storedID) {
             setUser(storedUser);
             setUserRole(storedRole);
             setUserID(storedID);
+            setEmployeeID(storedEmployeeID);
 
-            if (storedRole !== "faculty") {
-                window.location.href = "/login";
+            if (storedRole === "registrar") {
+                checkAccess(storedEmployeeID);
             } else {
-                fetchPersonData(storedID);
+                window.location.href = "/login";
             }
         } else {
             window.location.href = "/login";
         }
     }, []);
 
-    const fetchPersonData = async (id) => {
+    const checkAccess = async (employeeID) => {
         try {
-            const res = await axios.get(`http://localhost:5000/get_prof_data/${id}`)
-            const first = res.data[0];
-
-            const profInfo = {
-                prof_id: first.prof_id,
-                fname: first.fname,
-                mname: first.mname,
-                lname: first.lname,
-            };
-
-            setPerson(profInfo);
-        } catch (err) {
-            setSnackbarMessage("Error Fetching Professor Personal Data");
+            const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
+            if (response.data && response.data.page_privilege === 1) {
+                setHasAccess(true);
+            } else {
+                setHasAccess(false);
+            }
+        } catch (error) {
+            console.error('Error checking access:', error);
+            setHasAccess(false);
+            if (error.response && error.response.data.message) {
+                console.log(error.response.data.message);
+            } else {
+                console.log("An unexpected error occurred.");
+            }
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         if (!searchQuery || searchQuery.length < 9) {
@@ -213,22 +229,20 @@ const ProgramEvaluation = () => {
     const divToPrintRef = useRef();
 
     const printDiv = async () => {
-        try {
-            const page_name = "Program Evaluation";
-            const fullName = `${profData.lname}, ${profData.fname} ${profData.mname}`;
-            const type = "Printing"
-
-            await axios.post(`http://localhost:5000/insert-logs/faculty/${profData.prof_id}`, {
-                message: `User #${profData.prof_id} - ${fullName} printed ${page_name}`, type: type,
-            });
-
-            window.print();
-        } catch (err) {
-            console.error("Error inserting audit log");
-        }
+        window.print();
     };
 
- 
+    // Put this at the very bottom before the return 
+    if (loading || hasAccess === null) {
+        return <LoadingOverlay open={loading} message="Check Access" />;
+    }
+
+    if (!hasAccess) {
+        return (
+            <Unauthorized />
+        );
+    }
+
 
     return (
         <Box className="body" sx={{ height: 'calc(100vh - 150px)', overflowY: 'auto', overflowX: 'hidden', pr: 1 }}>
@@ -343,8 +357,7 @@ const ProgramEvaluation = () => {
                         scale: 0.8;
                         position: absolute;
                         left:0%;
-                        top: -12rem;
-
+                        top: 0%;
                         width: 100%;
                         font-family: "Poppins", sans-serif;
                         margin-top: -4.5rem;
@@ -469,7 +482,7 @@ const ProgramEvaluation = () => {
                                     </Box>
                                     <Box style={{ display: "flex" }}>
                                         <Typography style={{ width: "6rem", marginTop: "0.7rem", fontSize: "1.05rem", letterSpacing: "-1px" }}>Program:</Typography>
-                                        <Typography style={{ fontSize: "1.06rem", fontWeight: "500", marginTop: "0.7rem" }}>{studentData.program_description}</Typography>
+                                        <Typography style={{ fontSize: "1.06rem", fontWeight: "500", marginTop: "0.7rem" }}>{studentData.program_description} {studentData.major || ""}</Typography>
                                     </Box>
                                 </Box>
                                 <Box style={{ display: "flex" }}>

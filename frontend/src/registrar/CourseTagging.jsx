@@ -150,6 +150,8 @@ const CourseTagging = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [yearLevel, setYearLevel] = useState([])
   const [subjectCounts, setSubjectCounts] = useState({});
+  const [isenrolled, setIsEnrolled] = useState(null);
+  const [disableYearButtons, setDisableYearButtons] = useState(false);
 
   const fetchSubjectCounts = async (sectionId) => {
     try {
@@ -304,7 +306,6 @@ const CourseTagging = () => {
       await Promise.all(
         newCourses.map(async (course) => {
           try {
-            console.log("Curriculum ID for this course taggging is:", currId);
             const res = await axios.post("http://localhost:5000/add-all-to-enrolled-courses", {
               subject_id: course.course_id,
               user_id: userId,
@@ -312,10 +313,9 @@ const CourseTagging = () => {
               departmentSectionID: selectedSection,
               year_level: yearLevelId,
             });
-
-            console.log(`Response for subject ${course.course_id}:`, res.data.message);
+            setDisableYearButtons(true)
           } catch (err) {
-            console.error(`Error enrolling subject ${course.course_id}:`, err.response?.data?.message || err.message);
+            console.error("");
           }
         })
       );
@@ -351,12 +351,10 @@ const CourseTagging = () => {
     try {
       // Delete all user courses
       await axios.delete(`http://localhost:5000/courses/user/${userId}`);
-      setCourseCode("Not");
-      setCourseDescription("Currently Enrolled");
-      setSectionDescription("");
       // Refresh enrolled courses list
       const { data } = await axios.get(`http://localhost:5000/enrolled_courses/${userId}/${currId}`);
       setEnrolled(data);
+      setDisableYearButtons(false);
       console.log("Cart cleared and enrolled courses refreshed");
     } catch (err) {
       console.error("Error deleting cart or refreshing enrolled list:", err);
@@ -373,7 +371,7 @@ const CourseTagging = () => {
     try {
       const response = await axios.post("http://localhost:5000/student-tagging", { studentNumber }, { headers: { "Content-Type": "application/json" } });
 
-      const { token2, person_id2, studentNumber: studentNum, section: section, activeCurriculum: active_curriculum, yearLevel, courseCode: courseCode, courseDescription: courseDescription, firstName: first_name,
+      const { token2, isEnrolled, person_id2, studentNumber: studentNum, section: section, activeCurriculum: active_curriculum, yearLevel, courseCode: courseCode, courseDescription: courseDescription, firstName: first_name,
         middleName: middle_name, lastName: last_name, } = response.data;
 
       localStorage.setItem("token2", token2);
@@ -387,6 +385,7 @@ const CourseTagging = () => {
       localStorage.setItem("middleName", middle_name);
       localStorage.setItem("lastName", last_name);
       localStorage.setItem("section", section);
+      localStorage.setItem("isEnrolled", isEnrolled);
       setUserId(studentNum); // Set dynamic userId
       setUserFirstName(first_name); // Set dynamic userId
       setUserMiddleName(middle_name); // Set dynamic userId
@@ -394,8 +393,9 @@ const CourseTagging = () => {
       setCurr(active_curriculum); // Set Program Code based on curriculum
       setCourseCode(courseCode); // Set Program Code
       setCourseDescription(courseDescription); // Set Program Description
-      setPersonID(person_id);
+      setPersonID(person_id2);
       setSectionDescription(section);
+      setIsEnrolled(isEnrolled)
 
       console.log(studentNum);
       console.log(userId);
@@ -403,12 +403,7 @@ const CourseTagging = () => {
       console.log(currId);
       setSnack({ open: true, message: "Student found and authenticated!", severity: "success" });
     } catch (error) {
-      setSnack({
-        open: true,
-        message: error.response?.data?.message || "Search Student is not currently Enrolled",
-        severity: "error",
-      });
-
+      console.log("")
     }
   };
 
@@ -608,10 +603,11 @@ const CourseTagging = () => {
               value={dept.dprtmnt_id}
               onClick={() => handleSelect(dept.dprtmnt_id)}
               sx={{
+                fontWeight: "bold",
                 backgroundColor:
                   selectedDepartment === dept.dprtmnt_id ? "maroon" : "white",
                 color: selectedDepartment === dept.dprtmnt_id ? "white" : "maroon",
-                border: "1px solid maroon",
+                border: `2px solid ${borderColor}`,
                 "&:hover": {
                   backgroundColor: "maroon",
                   color: "white",
@@ -640,7 +636,20 @@ const CourseTagging = () => {
               {first_name} {middle_name} {last_name}
               <br />
               Department/Course/Section: &emsp;
-              {courseCode} {courseDescription} {sectionDescription}
+              <br />
+              {courseCode || courseDescription || sectionDescription ? (
+                isenrolled ? (
+                  <>
+                    {courseCode && `(${courseCode}) `}
+                    {courseDescription && courseDescription}{" "}
+                    {sectionDescription && sectionDescription}
+                  </>
+                ) : (
+                  "Not currently enrolled"
+                )
+              ) : (
+                ""
+              )}
             </Typography>
 
             <TextField
@@ -667,10 +676,17 @@ const CourseTagging = () => {
           </Box>
           <Box display="flex" gap={2} mt={2}>
             {yearLevel.map((year_level, index) => (
-              <Button variant="contained" color="success" key={index} onClick={() => addAllToCart(year_level.year_level_id)} disabled={!userId} value={year_level.year_level_id}>
+              <Button
+                key={index}
+                variant="contained"
+                color="success"
+                disabled={disableYearButtons}
+                onClick={() => addAllToCart(year_level.year_level_id)}
+              >
                 {year_level.year_level_description} Button
               </Button>
             ))}
+
             <Button variant="contained" color="warning" onClick={deleteAllCart}>
               Unenroll All
             </Button>
@@ -719,15 +735,15 @@ const CourseTagging = () => {
           sx={{ border: `2px solid ${borderColor}` }}
         >
           <Box sx={{ mb: 2 }}>
-            <Box style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
-              <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+            <Box style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ color: subtitleColor, }}>
                 Department Section
               </Typography>
-              <Button 
+              <Button
                 style={{
                   background: `${mainButtonColor}`,
                   color: "white"
-                }} 
+                }}
                 onClick={() => {
                   if (studentNumber) {
                     localStorage.setItem("studentNumberForCOR", studentNumber);
@@ -766,7 +782,7 @@ const CourseTagging = () => {
                 </MenuItem>
                 {sections.map((section) => (
                   <MenuItem key={section.department_and_program_section_id} value={section.department_and_program_section_id}>
-                    {section.program_code} - {section.program_description} - {section.description}
+                    ( <strong>{section.program_code}</strong> ) - {section.program_description} {section.major || ""} - {section.description}
                   </MenuItem>
                 ))}
               </TextField>

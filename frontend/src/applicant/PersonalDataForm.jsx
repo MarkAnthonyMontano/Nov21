@@ -134,7 +134,7 @@ const PersonalDataForm = () => {
         try {
             const res = await axios.get(`http://localhost:5000/api/person/${id}`);
             setPerson(res.data); // make sure backend returns the correct format
-            setApplicantID(applicantNumber);
+         
         } catch (error) {
             console.error("Failed to fetch person:", error);
         }
@@ -158,7 +158,7 @@ const PersonalDataForm = () => {
             setUser(storedUser);
             setUserRole(storedRole);
             setUserID(storedID);
-            setApplicantID(storedID);
+       
 
             if (storedRole === "applicant" || storedRole === "registrar") {
                 fetchPersonData(storedID);
@@ -308,24 +308,7 @@ const PersonalDataForm = () => {
 
     }
 
-    // 🔒 Disable right-click
-    document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    // 🔒 Block DevTools shortcuts + Ctrl+P silently
-    document.addEventListener('keydown', (e) => {
-        const isBlockedKey =
-            e.key === 'F12' || // DevTools
-            e.key === 'F11' || // Fullscreen
-            (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j')) || // Ctrl+Shift+I/J
-            (e.ctrlKey && e.key.toLowerCase() === 'u') || // Ctrl+U (View Source)
-            (e.ctrlKey && e.key.toLowerCase() === 'p');   // Ctrl+P (Print)
-
-        if (isBlockedKey) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    });
-
+  
 
 
     return (
@@ -926,7 +909,7 @@ const PersonalDataForm = () => {
                                         }}>
                                         <div style={{ fontWeight: "bold" }}>APPLICANT ID:</div>
 
-                                        {applicantID}
+                                    
                                     </td>
 
                                     {/* LEARNER’S REFERENCE NUMBER */}

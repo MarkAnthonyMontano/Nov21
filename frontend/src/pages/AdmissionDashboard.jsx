@@ -34,6 +34,7 @@ import {
   ListAlt,
   ContactEmergency,
 } from "@mui/icons-material";
+import AnalyticsIcon from "@mui/icons-material/Analytics";
 
 const AdmissionDashboardPanel = () => {
   const settings = useContext(SettingsContext);
@@ -198,6 +199,7 @@ const AdmissionDashboardPanel = () => {
         { title: "STUDENT NUMBERING PANEL", link: "/student_numbering", icon: Numbers, page_id: 59 },
         { title: "REPORT OF GRADES", link: "/report_of_grades", icon: Assessment, page_id: 50 },
         { title: "TRANSCRIPT OF RECORDS", link: "/transcript_of_records", icon: HistoryEdu, page_id: 62 },
+        { title: "Program Evaluation", link: "/program_evaluation", icon: AnalyticsIcon, page_id: 100 },
       ],
     },
   ];

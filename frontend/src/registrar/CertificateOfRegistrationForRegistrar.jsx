@@ -10,6 +10,8 @@ import { FcPrint } from "react-icons/fc";
 import { useLocation } from "react-router-dom";
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
+import { MdOutlinePayment } from "react-icons/md";
+import { IoMdSchool } from "react-icons/io";
 
 const CertificateOfRegistration = forwardRef(({ student_number }, divToPrintRef) => {
   const settings = useContext(SettingsContext);
@@ -467,7 +469,7 @@ const CertificateOfRegistration = forwardRef(({ student_number }, divToPrintRef)
   const totalLabFees = enrolled.reduce((sum, item) => sum + (parseFloat(item.total_lab_value) || 0), 0);
   const totalLabUnits = enrolled.reduce((sum, item) => sum + (parseFloat(item.lab_unit) || 0), 0);
   const totalCombined = totalCourseUnits + totalLabUnits;
-  
+
   const [tosf, setTosfData] = useState([]);
   const [curriculumOptions, setCurriculumOptions] = useState([]);
 
@@ -664,8 +666,61 @@ const CertificateOfRegistration = forwardRef(({ student_number }, divToPrintRef)
   return (
 
     <Container className="mb-[4rem]">
-      <Button onClick={handleSaveToUnifast}>Save to Unifast</Button>
-      <Button onClick={handleSaveToMatriculation}>Save to Matriculation</Button>
+      {/* SAVE TO UNIFAST BUTTON */}
+      <button
+        onClick={handleSaveToUnifast}
+        style={{
+          marginBottom: "1rem",
+          padding: "10px 20px",
+          border: "2px solid black",
+          backgroundColor: "#f0f0f0",
+          color: "black",
+          borderRadius: "5px",
+          marginTop: "20px",
+          cursor: "pointer",
+          fontSize: "16px",
+          fontWeight: "bold",
+          transition: "background-color 0.3s, transform 0.2s",
+        }}
+        onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+        onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+        onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <MdOutlinePayment size={20} />
+          Save to Unifast
+        </span>
+      </button>
+
+
+      {/* SAVE TO MATRICULATION BUTTON */}
+      <button
+        onClick={handleSaveToMatriculation}
+        style={{
+          marginBottom: "1rem",
+          padding: "10px 20px",
+          border: "2px solid black",
+          backgroundColor: "#f0f0f0",
+          color: "black",
+          borderRadius: "5px",
+          marginTop: "20px",
+          cursor: "pointer",
+          fontSize: "16px",
+          fontWeight: "bold",
+          transition: "background-color 0.3s, transform 0.2s",
+        }}
+        onMouseEnter={(e) => (e.target.style.backgroundColor = "#d3d3d3")}
+        onMouseLeave={(e) => (e.target.style.backgroundColor = "#f0f0f0")}
+        onMouseDown={(e) => (e.target.style.transform = "scale(0.95)")}
+        onMouseUp={(e) => (e.target.style.transform = "scale(1)")}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IoMdSchool size={20} />
+          Save Matriculation
+        </span>
+      </button>
+
       <div className="flex-container">
         <div className="section">
 
@@ -1000,7 +1055,7 @@ const CertificateOfRegistration = forwardRef(({ student_number }, divToPrintRef)
                           background: "none",
                         }}
                       />
-                      
+
                     </td>
                   </tr>
 
@@ -2577,7 +2632,7 @@ const CertificateOfRegistration = forwardRef(({ student_number }, divToPrintRef)
                     >
                       <input
                         type="text"
-                         value={
+                        value={
                           (totalLecFees + totalLabFees) +
                           Number(tosf[0]?.cultural_fee || 0) +
                           Number(tosf[0]?.athletic_fee || 0) +

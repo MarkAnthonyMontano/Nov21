@@ -127,46 +127,46 @@ const SuperAdminStudentDashboard5 = () => {
 
     const location = useLocation();
  
- const queryParams = new URLSearchParams(location.search);
-    const queryPersonId = queryParams.get("person_id")?.trim() || "";
+  const queryParams = new URLSearchParams(location.search);
+  const queryPersonId = queryParams.get("person_id")?.trim() || "";
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("email");
-        const storedRole = localStorage.getItem("role");
-        const loggedInPersonId = localStorage.getItem("person_id");
+  useEffect(() => {
+    const storedUser = localStorage.getItem("email");
+    const storedRole = localStorage.getItem("role");
+    const loggedInPersonId = localStorage.getItem("person_id");
 
-        if (!storedUser || !storedRole || !loggedInPersonId) {
-            window.location.href = "/login";
-            return;
-        }
+    if (!storedUser || !storedRole || !loggedInPersonId) {
+      window.location.href = "/login";
+      return;
+    }
 
-        setUser(storedUser);
-        setUserRole(storedRole);
+    setUser(storedUser);
+    setUserRole(storedRole);
 
-        const allowedRoles = ["registrar", "applicant", "superadmin"];
-        if (!allowedRoles.includes(storedRole)) {
-            window.location.href = "/login";
-            return;
-        }
+    const allowedRoles = ["registrar", "applicant", "superadmin"];
+    if (!allowedRoles.includes(storedRole)) {
+      window.location.href = "/login";
+      return;
+    }
 
-        const lastSelected = sessionStorage.getItem("admin_edit_person_id");
+    const lastSelected = sessionStorage.getItem("admin_edit_person_id");
 
-        // ⭐ CASE 1: URL HAS ?person_id=
-        if (queryPersonId !== "") {
-            sessionStorage.setItem("admin_edit_person_id", queryPersonId);
-            setUserID(queryPersonId);
-            return;
-        }
+    // ⭐ CASE 1: URL HAS ?person_id=
+    if (queryPersonId !== "") {
+      sessionStorage.setItem("admin_edit_person_id", queryPersonId);
+      setUserID(queryPersonId);
+      return;
+    }
 
-        // ⭐ CASE 2: URL has NO ID but we have a last selected student
-        if (lastSelected) {
-            setUserID(lastSelected);
-            return;
-        }
+    // ⭐ CASE 2: URL has NO ID but we have a last selected student
+    if (lastSelected) {
+      setUserID(lastSelected);
+      return;
+    }
 
-        fetchByPersonId(targetId);
-        setUserID("");
-    }, [queryPersonId]);
+    // ⭐ CASE 3: No URL ID and no last selected → start blank
+    setUserID("");
+  }, [queryPersonId]);
 
 
 

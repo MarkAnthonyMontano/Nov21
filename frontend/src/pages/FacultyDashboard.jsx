@@ -77,6 +77,7 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
     profile_image: "",
   });
   const [openImage, setOpenImage] = useState(null);
+  const [schedule, setSchedule] = useState([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("email");
@@ -115,6 +116,21 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
       setMessage("Error Fetching Professor Personal Data");
     }
   }
+
+  useEffect(() => {
+    if (personData.prof_id) {
+      fetchSchedule(personData.prof_id);
+    }
+  }, [personData.prof_id]);
+
+  const fetchSchedule = async (prof_id) => {
+    try {
+      const res = await axios.get(`http://localhost:5000/api/my_schedule/${prof_id}`);
+      setSchedule(res.data);
+    } catch (err) {
+      console.error("Failed to fetch schedule:", err);
+    }
+  };
 
   const [announcements, setAnnouncements] = useState([]);
   const [hovered, setHovered] = useState(false);
@@ -216,6 +232,12 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
     year: "numeric",
   });
 
+  const todayDay = new Date().toLocaleString("en-US", {
+    weekday: "short",
+    timeZone: "Asia/Manila",
+  });
+
+  console.log(todayDay);
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -267,138 +289,167 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
     >
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Card sx={{
-            borderRadius: 1,
-            boxShadow: 3,
-            p: 2,
-            border: `2px solid ${borderColor}`,
-            height: "130px",
-            transition: "transform 0.3s ease, box-shadow 0.3s ease",
-            "&:hover": {
-              transform: "scale(1.01)",
-              boxShadow: 6,
-
-            },
-            marginLeft: "10px"
-          }}>
+          <Card
+            sx={{
+              borderRadius: 1,
+              boxShadow: 3,
+              p: 1.5,              // reduced padding
+              border: `2px solid ${borderColor}`,
+              minHeight: 100,       // smaller min height
+              height: "auto",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              "&:hover": {
+                transform: "scale(1.01)",
+                boxShadow: 6,
+              },
+              mx: 1,
+            }}
+          >
             <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-
-                {/* 👤 Left Section - Avatar + Welcome */}
-                <Box display="flex" alignItems="center">
-
-                  {/* Avatar */}
-                  <Box
-                    position="relative"
-                    display="inline-block"
-                    mr={2}
-                    onMouseEnter={() => setHovered(true)}
-                    onMouseLeave={() => setHovered(false)}
-                  >
-                    <Avatar
-                      src={profileImage || `http://localhost:5000/uploads/${personData?.profile_image}`}
-                      alt={personData?.fname}
-                      sx={{
-                        width: 90,
-                        height: 90,
-                        border: `2px solid ${borderColor}`,
-                        cursor: "pointer",
-                        mt: -1.5,
-                      }}
-                      onClick={() => fileInputRef.current.click()}
+              <Grid container alignItems="center" spacing={2}>
+                {/* LEFT SECTION — Avatar + Name Info */}
+                <Grid item xs={12} sm={8} md={9}>
+                  <Box display="flex" alignItems="center" flexWrap="wrap">
+                    {/* Avatar */}
+                    <Box
+                      position="relative"
+                      display="inline-block"
+                      mr={2}
+                      onMouseEnter={() => setHovered(true)}
+                      onMouseLeave={() => setHovered(false)}
                     >
-                      {personData?.fname?.[0]}
-                    </Avatar>
-
-                    {hovered && (
-                      <label
-                        onClick={() => fileInputRef.current.click()}
-                        style={{
-                          position: "absolute",
-                          bottom: "0px",
-                          right: "0px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          borderRadius: "50%",
-                          backgroundColor: "#ffffff",
+                      <Avatar
+                        src={
+                          profileImage ||
+                          `http://localhost:5000/uploads/${personData?.profile_image}`
+                        }
+                        alt={personData?.fname}
+                        sx={{
+                          width: { xs: 70, sm: 80, md: 90 },  // smaller
+                          height: { xs: 70, sm: 80, md: 90 },
                           border: `2px solid ${borderColor}`,
-                          width: "32px",
-                          height: "32px",
+                          cursor: "pointer",
+                        }}
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        {personData?.fname?.[0]}
+                      </Avatar>
+
+                      {/* Add Icon Overlay */}
+                      {hovered && (
+                        <label
+                          onClick={() => fileInputRef.current.click()}
+                          style={{
+                            position: "absolute",
+                            bottom: "-5px",
+                            right: "0px",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: "50%",
+                            backgroundColor: "#ffffff",
+                            border: `2px solid ${borderColor}`,
+                            width: "36px",
+                            height: "36px",
+                          }}
+                        >
+                          <AddCircleIcon
+                            sx={{
+                              color: settings?.header_color || "#1976d2",
+                              fontSize: 32,
+                            }}
+                          />
+                        </label>
+                      )}
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        style={{ display: "none" }}
+                        onChange={handleFileChange}
+                      />
+                    </Box>
+
+                    {/* Welcome Text */}
+                    <Box sx={{ color: titleColor }}>
+                      <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: { xs: "24px", sm: "26px", md: "32px" },  // smaller
                         }}
                       >
-                        <AddCircleIcon
-                          sx={{
-                            color: settings?.header_color || "#1976d2",
-                            fontSize: 28,
-                            borderRadius: "50%",
-                          }}
-                        />
-                      </label>
-                    )}
+                        Welcome back!{" "}
+                        {personData
+                          ? `${personData.lname}, ${personData.fname} ${personData.mname || ""}`
+                          : ""}
+                      </Typography>
 
-
-                    {/* Hidden file input */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      style={{ display: "none" }}
-                      onChange={handleFileChange}
-                    />
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontSize: { xs: "16px", sm: "18px", md: "20px" }, // smaller
+                          color: "black",
+                        }}
+                      >
+                        <b>Employee ID:</b> {personData?.person_id || "N/A"}
+                      </Typography>
+                    </Box>
                   </Box>
+                </Grid>
 
-                  {/* Welcome text and Employee info */}
-                  <Box sx={{ color: titleColor }}>
-                    <Typography variant="h4" fontWeight="bold" mt={-1}>
-                      Welcome back!  {personData
-                        ? `${personData.lname}, ${personData.fname} ${personData.mname || ""}`
-                        : ""}
-                    </Typography>
-
-                    <Typography variant="body1" color="black" fontSize={20}>
-                      <b>Employee ID:</b> {personData?.person_id || "N/A"}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                {/* 📅 Right Section - Date */}
-                <Box textAlign="right" sx={{ color: "black" }}>
-                  <Typography variant="body1" fontSize="20px">
+                {/* RIGHT SECTION — Date */}
+                <Grid item xs={12} sm={4} md={3} textAlign={{ xs: "left", sm: "right" }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontSize: { xs: "16px", sm: "18px", md: "20px" } }} // smaller
+                  >
                     {formattedDate}
                   </Typography>
-                </Box>
-
-              </Box>
+                </Grid>
+              </Grid>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
 
-      <Box style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
-        <Grid item xs="auto">
+
+
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "1rem",
+          marginTop: "1rem",
+          justifyContent: "center",
+        }}
+      >
+        {/* Announcements */}
+        <Box
+          sx={{
+            flex: "0 0 100%",           // large width
+            maxWidth: { xs: "100%", sm: "450px", md: "732px" }, // responsive scaling
+            height: "472px",
+          }}
+        >
           <Card
             sx={{
+              width: "100%",
+              height: "100%",
               borderRadius: 3,
-              marginLeft: "10px",
               boxShadow: 3,
               p: 2,
-              width: "100%",
-              minWidth: "66rem",
-              height: "612px", // ✅ keep original height
+              overflowY: "auto",
               border: `2px solid ${borderColor}`,
-              transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              "&:hover": {
-                transform: "scale(1.05)",
-                boxShadow: 6,
-              },
+              transition: "transform 0.3s ease, boxShadow 0.3s ease",
+              "&:hover": { transform: "scale(1.02)", boxShadow: 6 },
             }}
           >
             <CardContent sx={{ width: "100%", height: "100%" }}>
-
               {/* ✅ Header same as top version */}
-              <Typography sx={{ textAlign: "center" }} variant="h6" gutterBottom>
+              <Typography sx={{ textAlign: "center", marginTop: "-1rem" }} variant="h6" gutterBottom>
                 Announcements
               </Typography>
 
@@ -410,348 +461,499 @@ const FacultyDashboard = ({ profileImage, setProfileImage }) => {
                   No active announcements.
                 </Typography>
               ) : (
-
-                /* ✅ EXACT SAME LAYOUT AS TOP VERSION */
-                <Box sx={{ maxHeight: "460px", overflowY: "auto" }}>
-                  {announcements.map((a) => (
+                <Box sx={{ position: "relative", maxHeight: "420px", height: "100%", overflow: "hidden" }}>
+                  {/* Display current announcement */}
+                  {announcements.length > 0 && (
                     <Box
-                      key={a.id}
+                      key={announcements[currentIndex].id}
                       sx={{
                         mb: 2,
                         p: 1,
-                        width: "100%",
-                        borderRadius: 2,
+                        transition: "opacity 0.6s ease",
+                        opacity: 1,
                         border: `2px solid ${borderColor}`,
                         backgroundColor: "#fff8f6",
+                        borderRadius: 2,
+                        position: "absolute",
+                        width: "100%",
                       }}
                     >
                       <Typography
                         variant="subtitle2"
                         sx={{ color: "maroon", fontWeight: "bold" }}
                       >
-                        {a.title}
+                        {announcements[currentIndex].title}
                       </Typography>
 
                       <Typography variant="body2" sx={{ mb: 1 }}>
-                        {a.content}
+                        {announcements[currentIndex].content}
                       </Typography>
 
-                      {a.file_path && (
+                      <Divider sx={{ mb: 2 }} />
+
+                      {announcements[currentIndex].file_path && (
                         <>
                           <img
-                            src={`http://localhost:5000/uploads/${a.file_path}`}
-                            alt={a.title}
+                            src={`http://localhost:5000/uploads/${announcements[currentIndex].file_path}`}
+                            alt={announcements[currentIndex].title}
                             style={{
                               width: "100%",
-                              maxHeight: "21rem",
+                              height: "100%",
+                              maxHeight: "16.4rem",
                               objectFit: "cover",
                               borderRadius: "6px",
                               marginBottom: "6px",
                               cursor: "pointer",
                             }}
                             onClick={() =>
-                              setOpenImage(`http://localhost:5000/uploads/${a.file_path}`)
+                              setOpenImage(
+                                `http://localhost:5000/uploads/${announcements[currentIndex].file_path}`
+                              )
                             }
                           />
-
-                          {/* ✅ Dialog stays identical */}
-                          <Dialog
-                            open={Boolean(openImage)}
-                            onClose={() => setOpenImage(null)}
-                            fullScreen
-                            PaperProps={{
-                              style: {
-                                backgroundColor: "transparent",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                position: "relative",
-                                boxShadow: "none",
-                                cursor: "pointer",
-                              },
-                            }}
-                          >
-                            <Box
-                              onClick={() => setOpenImage(null)}
-                              sx={{
-                                position: "absolute",
-                                top: 0,
-                                left: 0,
-                                width: "100%",
-                                height: "100%",
-                                zIndex: 1,
-                              }}
-                            />
-
-                            <IconButton
-                              onClick={() => setOpenImage(null)}
-                              sx={{
-                                position: "absolute",
-                                top: 20,
-                                left: 20,
-                                backgroundColor: "white",
-                                width: 55,
-                                height: 55,
-                                padding: "5px",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                zIndex: 2,
-                                "&:hover": { backgroundColor: "#f5f5f5" },
-                              }}
-                            >
-                              <KeyboardBackspaceIcon sx={{ fontSize: 40, color: "black" }} />
-                            </IconButton>
-
-                            <Box
-                              onClick={(e) => e.stopPropagation()}
-                              sx={{
-                                position: "relative",
-                                zIndex: 2,
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                maxWidth: "100%",
-                                maxHeight: "100%",
-                              }}
-                            >
-                              <img
-                                src={openImage}
-                                alt="Preview"
-                                style={{
-                                  maxWidth: "100%",
-                                  maxHeight: "90%",
-                                  objectFit: "contain",
-                                }}
-                              />
-                            </Box>
-                          </Dialog>
                         </>
                       )}
 
-                      <Typography variant="caption" color="text.secondary">
-                        Expires: {new Date(a.expires_at).toLocaleDateString("en-US")}
+                      <Typography variant="caption" style={{ display: "flex" }} color="text.secondary">
+                        Posted: {""}
+                        {new Date(
+                          announcements[currentIndex].created_at
+                        ).toLocaleDateString("en-US")}
+                        <div style={{ width: "20px" }}></div>
+                        Expires:{" "}
+                        {new Date(
+                          announcements[currentIndex].expires_at
+                        ).toLocaleDateString("en-US")}
                       </Typography>
                     </Box>
-                  ))}
+                  )}
+
+                  {/* Navigation Buttons */}
+                  {announcements.length > 1 && (
+                    <>
+                      <IconButton
+                        onClick={() =>
+                          setCurrentIndex(
+                            (prev) => (prev - 1 + announcements.length) % announcements.length
+                          )
+                        }
+                        sx={{
+                          position: "absolute",
+                          top: "50%",
+                          left: 10,
+                          transform: "translateY(-50%)",
+                          backgroundColor: "rgba(255,255,255,0.8)",
+                          "&:hover": { backgroundColor: "#fff" },
+                        }}
+                      >
+                        <KeyboardBackspaceIcon sx={{ color: "maroon", fontSize: 24 }} />
+                      </IconButton>
+
+                      <IconButton
+                        onClick={() =>
+                          setCurrentIndex((prev) => (prev + 1) % announcements.length)
+                        }
+                        sx={{
+                          position: "absolute",
+                          top: "50%",
+                          right: 10,
+                          transform: "translateY(-50%) rotate(180deg)",
+                          backgroundColor: "rgba(255,255,255,0.8)",
+                          "&:hover": { backgroundColor: "#fff" },
+                        }}
+                      >
+                        <KeyboardBackspaceIcon sx={{ color: "maroon", fontSize: 24 }} />
+                      </IconButton>
+                    </>
+                  )}
                 </Box>
               )}
-            </CardContent>
-          </Card>
-        </Grid>
-       <Box>
-  <Grid item xs="auto">
-    <Card
-      sx={{
-        border: `2px solid ${borderColor}`,
-        marginLeft: "10px",
-        boxShadow: 3,
-        borderRadius: "10px",
-        p: 2,
-        width: "425px",
-        height: "400px", // ✅ fixed height
-        transition: "transform 0.2s ease",
-        "&:hover": { transform: "scale(1.03)" },
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "center",
-      }}
-    >
-      <CardContent sx={{ p: 0, width: "100%" }}>
-        {/* Header with month + year + arrows */}
-        <Grid
-          container
-          alignItems="center"
-          justifyContent="space-between"
-          sx={{
-            backgroundColor: settings?.header_color || "#1976d2",
-            color: "white",
-            border: `2px solid ${borderColor}`,
-            borderBottom: "none",
-            borderRadius: "8px 8px 0 0",
-            padding: "10px 8px",
-          }}
-        >
-          <Grid item>
-            <IconButton size="small" onClick={handlePrevMonth} sx={{ color: "white" }}>
-              <ArrowBackIos fontSize="small" />
-            </IconButton>
-          </Grid>
-          <Grid item>
-            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {date.toLocaleString("default", { month: "long" })} {year}
-            </Typography>
-          </Grid>
-          <Grid item>
-            <IconButton size="small" onClick={handleNextMonth} sx={{ color: "white" }}>
-              <ArrowForwardIos fontSize="small" />
-            </IconButton>
-          </Grid>
-        </Grid>
 
-        {/* ✅ Calendar Table */}
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(7, 1fr)",
-            borderLeft: `2px solid ${borderColor}`,
-            borderRight: `2px solid ${borderColor}`,
-            borderBottom: `2px solid ${borderColor}`,
-            borderTop: `2px solid ${borderColor}`,
-            borderRadius: "0 0 8px 8px",
-            overflow: "hidden",
-          }}
-        >
-          {/* Days of the week */}
-          {days.map((day, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                backgroundColor: "#f3f3f3",
-                textAlign: "center",
-                py: 1,
-                fontWeight: "bold",
-                borderBottom: `1px solid ${borderColor}`,
-              }}
-            >
-              {day}
-            </Box>
-          ))}
-
-          {/* Dates */}
-          {weeks.map((week, i) =>
-            week.map((day, j) => {
-              if (!day) {
-                return (
-                  <Box
-                    key={`${i}-${j}`}
-                    sx={{
-                      height: 45,
-                      backgroundColor: "#fff",
-                    }}
-                  />
-                );
-              }
-
-              const isToday = day === today && month === thisMonth && year === thisYear;
-              const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-                day
-              ).padStart(2, "0")}`;
-              const isHoliday = holidays[dateKey];
-
-              const dayCell = (
-                <Box
-                  sx={{
-                    height: 45,
+              <Dialog
+                open={Boolean(openImage)}
+                onClose={() => setOpenImage(null)}
+                fullScreen
+                PaperProps={{
+                  style: {
+                    backgroundColor: "transparent",
                     display: "flex",
-                    alignItems: "center",
                     justifyContent: "center",
-                    borderRadius: "50%",
-                    backgroundColor: isToday
-                      ? settings?.header_color || "#1976d2"
-                      : isHoliday
-                        ? "#E8C999"
-                        : "#fff",
-                    color: isToday ? "white" : "black",
-                    fontWeight: isHoliday ? "bold" : "500",
-                    cursor: isHoliday ? "pointer" : "default",
-                    "&:hover": {
-                      backgroundColor: isHoliday ? "#F5DFA6" : "#000",
-                      color: isHoliday ? "black" : "white",
-                    },
+                    alignItems: "center",
+                    position: "relative",
+                    boxShadow: "none",
+                    cursor: "pointer",
+                  },
+                }}
+              >
+                <Box
+                  onClick={() => setOpenImage(null)}
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    zIndex: 1,
+                  }}
+                />
+                {/* 🔙 Back Button on Top-Left */}
+                <IconButton
+                  onClick={() => setOpenImage(null)}
+                  sx={{
+                    position: "absolute",
+                    top: 20,
+                    left: 20,
+                    backgroundColor: "white",
+                    width: 50,
+                    height: 50,
+                    padding: "5px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 2, // above clickable backdrop
+                    "&:hover": { backgroundColor: "#f5f5f5" },
                   }}
                 >
-                  {day}
-                </Box>
-              );
-
-              return isHoliday ? (
-                <Tooltip
-                  key={`${i}-${j}`}
-                  title={
-                    <>
-                      <Typography fontWeight="bold">{isHoliday.localName}</Typography>
-                      <Typography variant="caption">{isHoliday.date}</Typography>
-                    </>
-                  }
-                  arrow
-                  placement="top"
+                  <KeyboardBackspaceIcon sx={{ fontSize: 30, color: "black" }} />
+                </IconButton>
+                {/* Fullscreen Image */}
+                <Box
+                  onClick={(e) => e.stopPropagation()} // prevent closing when clicking the image
+                  sx={{
+                    position: "relative",
+                    zIndex: 2,
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                  }}
                 >
-                  {dayCell}
-                </Tooltip>
-              ) : (
-                <React.Fragment key={`${i}-${j}`}>{dayCell}</React.Fragment>
-              );
-            })
-          )}
+                  <img
+                    src={openImage}
+                    alt="Preview"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "90%",
+                      objectFit: "contain",
+                    }}
+                  />
+                </Box>
+              </Dialog>
+            </CardContent>
+          </Card>
         </Box>
-      </CardContent>
-    </Card>
-  </Grid>
 
-  {/* Workload Card (unchanged) */}
-  <Grid item xs="auto">
-    <Card
-      sx={{
-        border: `2px solid ${borderColor}`,
-        marginLeft: "10px",
-        boxShadow: 3,
-        p: 2,
-        width: "425px",
-        height: "196px",
-        borderRadius: "10px",
-        marginTop: "1rem",
-        transition: "transform 0.2s ease",
-        "&:hover": { transform: "scale(1.03)" },
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "flex-start",
-        alignItems: "center",
-      }}
-    >
-      <CardContent sx={{ p: 0, width: "100%", height: "100%" }}>
+        {/* Calendar + Workload stacked */}
         <Box
           sx={{
-            textAlign: "center",
-            backgroundColor: settings?.header_color || "#1976d2",
-            color: "white",
-            borderRadius: "6px 6px 0 0",
-            padding: "4px 8px",
-            fontWeight: "bold",
-            border: `2px solid ${borderColor}`,
-          }}
-        >
-          Workload
-        </Box>
-        <Box
-          sx={{
+            flex: "0 0 300px",
+            maxWidth: { xs: "100%", sm: "250px", md: "300px" },
+            height: "472px",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "2px solid black",
-            borderRadius: "2px",
-            height: "130px",
+            flexDirection: "column",
+            gap: "1rem",
           }}
         >
-          <Link to={"/faculty_workload"}>
-            <Button
-              style={{
-                backgroundColor: mainButtonColor,
-                color: "white",
-                padding: "15px 20px",
-              }}
-            >
-              Open My Workload
-            </Button>
-          </Link>
-        </Box>
-      </CardContent>
-    </Card>
-  </Grid>
-</Box>
+          {/* Calendar Card */}
+          <Card
+            sx={{
+              width: "100%",
+              height: "360px",
+              border: `2px solid ${borderColor}`,
+              boxShadow: 3,
+              borderRadius: "10px",
+              p: 2,
+              overflowY: "hidden",
+              transition: "transform 0.2s ease",
+              "&:hover": { transform: "scale(1.02)" },
+            }}
+          >
+            <CardContent sx={{ p: 0, width: "100%" }}>
+              {/* Header with month + year + arrows */}
+              <Grid
+                container
+                alignItems="center"
+                justifyContent="space-between"
+                sx={{
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                  border: `2px solid ${borderColor}`,
+                  borderBottom: "none",
+                  borderRadius: "8px 8px 0 0",
+                  padding: "6px 4px",
+                }}
+              >
+                <Grid item>
+                  <IconButton size="small" onClick={handlePrevMonth} sx={{ color: "white", fontSize: "12px" }}>
+                    <ArrowBackIos fontSize="12px" />
+                  </IconButton>
+                </Grid>
+                <Grid item>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", fontSize: "12px" }}>
+                    {date.toLocaleString("default", { month: "long" })} {year}
+                  </Typography>
+                </Grid>
+                <Grid item>
+                  <IconButton size="small" onClick={handleNextMonth} sx={{ color: "white", fontSize: "12px" }}>
+                    <ArrowForwardIos fontSize="12px" />
+                  </IconButton>
+                </Grid>
+              </Grid>
 
+              {/* ✅ Calendar Table */}
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, 1fr)",
+                  borderLeft: `2px solid ${borderColor}`,
+                  borderRight: `2px solid ${borderColor}`,
+                  borderBottom: `2px solid ${borderColor}`,
+                  borderTop: `2px solid ${borderColor}`,
+                  borderRadius: "0 0 8px 8px",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Days of the week */}
+                {days.map((day, idx) => (
+                  <Box
+                    key={idx}
+                    sx={{
+                      backgroundColor: "#f3f3f3",
+                      textAlign: "center",
+                      py: 1,
+                      fontWeight: "bold",
+                      fontSize: "12px",
+                      borderBottom: `1px solid ${borderColor}`,
+                    }}
+                  >
+                    {day}
+                  </Box>
+                ))}
+                {/* Dates */}
+                {weeks.map((week, i) =>
+                  week.map((day, j) => {
+                    if (!day) {
+                      return (
+                        <Box
+                          key={`${i}-${j}`}
+                          sx={{
+                            height: 27,
+                            backgroundColor: "#fff",
+                          }}
+                        />
+                      );
+                    }
+
+                    const isToday = day === today && month === thisMonth && year === thisYear;
+                    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+                      day
+                    ).padStart(2, "0")}`;
+                    const isHoliday = holidays[dateKey];
+                    const dayCell = (
+                      <Box
+                        sx={{
+                          height: 27,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "12px",
+                          borderRadius: "50%",
+                          backgroundColor: isToday
+                            ? settings?.header_color || "#1976d2"
+                            : isHoliday
+                              ? "#E8C999"
+                              : "#fff",
+                          color: isToday ? "white" : "black",
+                          fontWeight: isHoliday ? "bold" : "500",
+                          cursor: isHoliday ? "pointer" : "default",
+                          "&:hover": {
+                            backgroundColor: isHoliday ? "#F5DFA6" : "#000",
+                            color: isHoliday ? "black" : "white",
+                          },
+                        }}
+                      >
+                        {day}
+                      </Box>
+                    );
+
+                    return isHoliday ? (
+                      <Tooltip
+                        key={`${i}-${j}`}
+                        title={
+                          <>
+                            <Typography fontWeight="bold">{isHoliday.localName}</Typography>
+                            <Typography variant="caption">{isHoliday.date}</Typography>
+                          </>
+                        }
+                        arrow
+                        placement="top"
+                      >
+                        {dayCell}
+                      </Tooltip>
+                    ) : (
+                      <React.Fragment key={`${i}-${j}`}>{dayCell}</React.Fragment>
+                    );
+                  })
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Workload Card */}
+          <Card
+            sx={{
+              width: "100%",
+              height: "252px",
+              border: `2px solid ${borderColor}`,
+              boxShadow: 3,
+              borderRadius: "10px",
+              p: 2,
+              overflowY: "auto",
+              transition: "transform 0.2s ease",
+              "&:hover": { transform: "scale(1.02)" },
+            }}
+          >
+            <CardContent sx={{ p: 0, width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                  borderRadius: "6px 6px 0 0",
+                  padding: "4px 8px",
+                  fontWeight: "bold",
+                  fontSize: "12px",
+                  border: `2px solid ${borderColor}`,
+                }}
+              >
+                Workload
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: "0px 2px 2px 2px",
+                  borderColor: "black",
+                  borderStyle: "solid",
+                  borderRadius: "2px",
+                  height: "130px",
+                }}
+              >
+                <Link to={"/faculty_workload"}>
+                  <Button
+                    style={{
+                      backgroundColor: mainButtonColor,
+                      color: "white",
+                      padding: "15px 20px",
+                    }}
+                  >
+                    Open My Workload
+                  </Button>
+                </Link>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* My Schedule */}
+        <Box
+          sx={{
+            flex: "0 0 300px",
+            maxWidth: { xs: "100%", sm: "250px", md: "300px" },
+            height: "472px",
+          }}
+        >
+          <Card
+            sx={{
+              width: "100%",
+              height: "100%",
+              border: `2px solid ${borderColor}`,
+              boxShadow: 3,
+              borderRadius: "10px",
+              p: 2,
+              overflowY: "auto",
+              transition: "transform 0.2s ease",
+              "&:hover": { transform: "scale(1.02)" },
+            }}
+          >
+            <CardContent sx={{ p: 0, width: "100%", height: "100%" }}>
+              <Box
+                sx={{
+                  textAlign: "center",
+                  backgroundColor: settings?.header_color || "#1976d2",
+                  color: "white",
+                  borderRadius: "6px 6px 0 0",
+                  padding: "4px 8px",
+                  fontWeight: "bold",
+                  fontSize: "12px",
+                  border: `2px solid ${borderColor}`,
+                }}
+              >
+                My Schedule
+              </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  borderWidth: "0px 2px 2px 2px",
+                  borderColor: "black",
+                  borderStyle: "solid",
+                  borderRadius: "2px",
+                  height: "412px",
+                  overflowY: "auto",
+                  padding: "10px",
+                }}
+              >
+                {schedule.filter(item => item.description === todayDay.toUpperCase()).length === 0 ? (
+                  <Typography sx={{ fontSize: "13px", textAlign: "center", marginTop: "20px", color: "#666" }}>
+                    No schedule for today.
+                  </Typography>
+                ) : (
+                  schedule
+                    .filter(item => item.description === todayDay.toUpperCase())
+                    .map((item, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          background: "white",
+                          mb: 1.5,
+                          p: 1.5,
+                          borderRadius: "8px",
+                          boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+                          border: "1px solid #e0e0e0",
+                          transition: "0.25s ease-in-out",
+                          cursor: "pointer",
+                          "&:hover": {
+                            boxShadow: "0 3px 8px rgba(0,0,0,0.18)",
+                            transform: "scale(1.02)",
+                            borderColor: settings?.main_button_color || "#1976d2",
+                            backgroundColor: "#f0f8ff",
+                          },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: "13px", fontWeight: "bold", color: "#333" }}>
+                          {item.course_code} - {item.program_code} - {item.section}
+                        </Typography>
+
+                        <Typography sx={{ fontSize: "12px", color: "#444" }}>
+                          {item.school_time_start} — {item.school_time_end}
+                        </Typography>
+
+                        <Typography sx={{ fontSize: "11px", color: "#777", textTransform: "uppercase" }}>
+                          {item.room_description}
+                        </Typography>
+                      </Box>
+                    ))
+                )}
+              </Box>
+
+            </CardContent>
+          </Card>
+        </Box>
       </Box>
+
     </Box>
   );
 };

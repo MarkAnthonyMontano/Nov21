@@ -95,7 +95,7 @@ const AnnouncementPanel = () => {
             formData.append("content", form.content);
             formData.append("valid_days", form.valid_days);
             formData.append("target_role", form.target_role);
-            formData.append("creator_role", userRole);
+            formData.append("creator_role", "faculty");
             formData.append("creator_id", employeeID);
             if (image) formData.append("image", image);
 
@@ -133,13 +133,36 @@ const AnnouncementPanel = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
+        setSnackbar({
+            open: true,
+            message: "⏳ Deleting announcement...",
+            severity: "info",
+        });
+
         try {
             await axios.delete(`http://localhost:5000/api/announcements/${id}`);
+
+            setSnackbar({
+                open: true,
+                message: "🗑️ Announcement deleted successfully!",
+                severity: "success",
+            });
+
             fetchAnnouncements();
         } catch (err) {
             console.error(err);
+
+            setSnackbar({
+                open: true,
+                message: "❌ Failed to delete announcement.",
+                severity: "error",
+            });
         }
+    };
+
+
+    const handleRemoveImage = () => {
+        setImage(null);
     };
 
     if (loading || hasAccess === null) return <LoadingOverlay open={loading} message="Check Access" />;

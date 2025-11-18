@@ -47,7 +47,7 @@ import HistoryLogs from './pages/HistoryLogs';
 import GradingSheet from './faculty/GradingSheet';
 import FacultyWorkload from './faculty/FacultyWorkload';
 import FacultyMasterList from './faculty/FacultyMasterlist';
-import ProgramEvaluation from './faculty/ProgramEvaluation';
+import ProgramEvaluation from './registrar/ProgramEvaluation';
 import FacultyResetPassword from './faculty/FacultyResetPassword';
 import FacultyEvaluation from './faculty/FacultyEvaluation';
 

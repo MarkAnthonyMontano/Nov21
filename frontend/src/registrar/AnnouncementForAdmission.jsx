@@ -113,7 +113,9 @@ const AnnouncementPanel = () => {
             formData.append("target_role", form.target_role);
             formData.append("creator_role", userRole);
             formData.append("creator_id", employeeID);
-            if (image) formData.append("file", image); // <-- CHANGE HERE
+
+            // FIX HERE (use "image", not "file")
+            if (image) formData.append("image", image);
 
             if (editingId) {
                 await axios.put(`http://localhost:5000/api/announcements/${editingId}`, formData, {
@@ -121,7 +123,7 @@ const AnnouncementPanel = () => {
                 });
                 setSnackbar({ open: true, message: "Announcement updated!", severity: "success" });
             } else {
-                await axios.post(`http://localhost:5000/api/announcements/upload`, formData, { // <-- make sure this matches your backend route
+                await axios.post(`http://localhost:5000/api/announcements/upload`, formData, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 setSnackbar({ open: true, message: "Announcement created!", severity: "success" });
@@ -137,6 +139,7 @@ const AnnouncementPanel = () => {
         }
     };
 
+
     const handleEdit = (announcement) => {
         setForm({
             title: announcement.title,
@@ -149,12 +152,29 @@ const AnnouncementPanel = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this announcement?")) return;
+        setSnackbar({
+            open: true,
+            message: "⏳ Deleting announcement...",
+            severity: "info",
+        });
+
         try {
             await axios.delete(`http://localhost:5000/api/announcements/${id}`);
+
+            setSnackbar({
+                open: true,
+                message: "🗑️ Announcement deleted successfully!",
+                severity: "success",
+            });
+
             fetchAnnouncements();
         } catch (err) {
             console.error(err);
+            setSnackbar({
+                open: true,
+                message: "❌ Failed to delete announcement.",
+                severity: "error",
+            });
         }
     };
 

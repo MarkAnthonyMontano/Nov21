@@ -1113,41 +1113,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
               </li>
             </Link>
 
-            {/* Program Evaluation */}
-            <Link to="/program_evaluation">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/program_evaluation"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/program_evaluation"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/program_evaluation") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/program_evaluation") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <AssessmentIcon />
-                <span className="pl-4 p-2 px-0 pointer-events-none">
-                  Program Evaluation
-                </span>
-              </li>
-            </Link>
+          
 
             {/* Reset Password */}
             <Link to="/faculty_reset_password">

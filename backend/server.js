@@ -6700,7 +6700,7 @@ io.on("connection", (socket) => {
   // INTERVIEW EXAM
   socket.on("update_schedule_for_interview", async ({ schedule_id, applicant_numbers }) => {
     try {
-      console.log("For Interview: ",schedule_id)
+      console.log("For Interview: ", schedule_id)
       if (!schedule_id || !applicant_numbers || applicant_numbers.length === 0) {
         return socket.emit("update_schedule_result", {
           success: false,
@@ -7336,7 +7336,7 @@ app.post("/adding_course", async (req, res) => {
 // ✅ Update an existing course
 app.put("/update_course/:id", async (req, res) => {
   const { id } = req.params;
-  const { course_code, course_description, course_unit, lab_unit, lec_value, lab_value} = req.body;
+  const { course_code, course_description, course_unit, lab_unit, lec_value, lab_value } = req.body;
   try {
     const [result] = await db3.query(
       "UPDATE course_table SET course_code=?, course_description=?, course_unit=?, lab_unit=?, lec_value = ?, lab_value = ? WHERE course_id=?",
@@ -9261,6 +9261,7 @@ app.delete("/courses/user/:userId", async (req, res) => {
 
 
 // Login User (UPDATED!)
+
 app.post("/student-tagging", async (req, res) => {
   const { studentNumber } = req.body;
 
@@ -9330,8 +9331,8 @@ app.post("/student-tagging", async (req, res) => {
         major: student.major,
         yearLevel: student.year_level_id,
         yearLevelDescription: student.year_level_description,
-        courseCode: isEnrolled ? student.program_code : "Not",
-        courseDescription: isEnrolled ? student.program_description : "Enrolled",
+        courseCode: student.program_code,
+        courseDescription: student.program_description,
         departmentName: student.dprtmnt_name,
         yearDesc: student.year_description,
         firstName: student.first_name,
@@ -9375,6 +9376,7 @@ app.post("/student-tagging", async (req, res) => {
     res.json({
       message: "Search successful",
       token2,
+      isEnrolled,
       studentNumber: student.student_number,
       person_id2: student.person_id,
       section: student.section_description,
@@ -9382,8 +9384,8 @@ app.post("/student-tagging", async (req, res) => {
       major: student.major,
       yearLevel: student.year_level_id,
       yearLevelDescription: student.year_level_description,
-      courseCode: isEnrolled ? student.program_code : "Not",
-      courseDescription: isEnrolled ? student.program_description : "Enrolled",
+      courseCode: student.program_code,
+      courseDescription: student.program_description,
       departmentName: student.dprtmnt_name,
       yearDesc: student.year_description,
       firstName: student.first_name,
@@ -9401,6 +9403,7 @@ app.post("/student-tagging", async (req, res) => {
     return res.status(500).json({ message: "Database error" });
   }
 });
+
 
 let lastSeenId = 0;
 
@@ -9967,8 +9970,8 @@ app.get("/tosf", async (req, res) => {
 });
 
 app.post("/insert_tosf", async (req, res) => {
-  const {athletic_fee, cultural_fee, developmental_fee, guidance_fee, library_fee, medical_and_dental_fee, registration_fee, computer_fee} = req.body;
-   try {
+  const { athletic_fee, cultural_fee, developmental_fee, guidance_fee, library_fee, medical_and_dental_fee, registration_fee, computer_fee } = req.body;
+  try {
     await db3.query("INSERT INTO tosf (athletic_fee, cultural_fee, developmental_fee, guidance_fee, library_fee, medical_and_dental_fee, registration_fee, computer_fee) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", [athletic_fee, cultural_fee, developmental_fee, guidance_fee, library_fee, medical_and_dental_fee, registration_fee, computer_fee]);
     res.json({
       success: true,
@@ -9980,7 +9983,7 @@ app.post("/insert_tosf", async (req, res) => {
 });
 
 app.put("/update_tosf/:tosf_id", async (req, res) => {
-  const {tosf_id } = req.params;
+  const { tosf_id } = req.params;
   const {
     athletic_fee,
     cultural_fee,
@@ -12083,9 +12086,10 @@ app.post(
       return res.status(400).json({ error: "Invalid target_role" });
     }
 
-    if (!["student", "faculty", "applicant"].includes(creator_role)) {
+    if (!["student", "faculty", "applicant", "registrar"].includes(creator_role)) {
       return res.status(400).json({ error: "Invalid creator_role" });
     }
+
 
     try {
       // Step 1: Insert announcement
@@ -12126,7 +12130,6 @@ app.post(
   }
 );
 
-// Update announcement by ID
 // Update announcement by ID with optional image
 app.put(
   "/api/announcements/:id",
@@ -13121,6 +13124,28 @@ app.get("/api/program_evaluation/:student_number", async (req, res) => {
   }
 });
 
+app.get("/api/my_schedule/:prof_id", async (req, res) => {
+  const {prof_id} = req.params
+  try {
+
+    const sql = ` 
+    SELECT rdt.description, rt.room_description, tt.school_time_start, tt.school_time_end, ct.course_code, pgt.program_code, st.description AS section  FROM time_table AS tt
+    LEFT JOIN room_day_table AS rdt ON tt.room_day = rdt.id
+    LEFT JOIN room_table AS rt ON tt.department_room_id = rt.room_id
+    LEFT JOIN course_table AS ct ON tt.course_id = ct.course_id
+    LEFT JOIN active_school_year_table AS sy ON tt.school_year_id = sy.id
+    LEFT JOIN dprtmnt_section_table AS dst ON tt.department_section_id = dst.id
+    LEFT JOIN curriculum_table AS cct ON dst.curriculum_id = cct.curriculum_id
+    LEFT JOIN program_table AS pgt ON cct.program_id = pgt.program_id
+    LEFT JOIN section_table AS st ON dst.section_id = st.id
+    WHERE tt.professor_id = ? AND sy.astatus = 1;;`
+    const [rows] = await db3.query(sql, [prof_id]);
+
+    res.json(rows);
+  } catch (err) {
+    console.log("Internal Server Error")
+  }
+})
 
 app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
   const { student_number } = req.params;
@@ -13142,6 +13167,7 @@ app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
           yt.year_description as current_year,
           yt.year_id,
           pgt.program_code,
+          pgt.major,
           pgt.program_description,
           es.en_remarks,
           yt.year_description + 1 as next_year
@@ -13169,27 +13195,27 @@ app.get("/api/program_evaluation/details/:student_number", async (req, res) => {
 });
 
 app.post("/api/pages", async (req, res) => {
-    const { id, page_description, page_group } = req.body;
+  const { id, page_description, page_group } = req.body;
 
-    try {
-        // Check duplicate ID
-        const [exists] = await db3.query("SELECT id FROM page_table WHERE id = ?", [id]);
+  try {
+    // Check duplicate ID
+    const [exists] = await db3.query("SELECT id FROM page_table WHERE id = ?", [id]);
 
-        if (exists.length > 0) {
-            return res.status(400).json({ error: "ID already exists" });
-        }
-
-        // Insert page
-        await db3.query(
-            "INSERT INTO page_table (id, page_description, page_group) VALUES (?, ?, ?)",
-            [id, page_description, page_group]
-        );
-
-        res.json({ success: true });
-    } catch (error) {
-        console.error("Error adding page:", error);
-        res.status(500).json({ error: "Database error" });
+    if (exists.length > 0) {
+      return res.status(400).json({ error: "ID already exists" });
     }
+
+    // Insert page
+    await db3.query(
+      "INSERT INTO page_table (id, page_description, page_group) VALUES (?, ?, ?)",
+      [id, page_description, page_group]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error adding page:", error);
+    res.status(500).json({ error: "Database error" });
+  }
 });
 
 
@@ -14725,13 +14751,13 @@ app.get("/api/registrar_count", async (req, res) => {
 });
 
 app.get("/api/all-persons", (req, res) => {
-    db.query("SELECT person_id, last_name, first_name, middle_name FROM person_table", (err, result) => {
-        if (err) {
-            console.error("Error fetching persons:", err);
-            return res.status(500).json({ error: "Failed to fetch persons" });
-        }
-        res.json(result);
-    });
+  db.query("SELECT person_id, last_name, first_name, middle_name FROM person_table", (err, result) => {
+    if (err) {
+      console.error("Error fetching persons:", err);
+      return res.status(500).json({ error: "Failed to fetch persons" });
+    }
+    res.json(result);
+  });
 });
 
 

@@ -1363,13 +1363,11 @@ const ExaminationProfile = ({ personId }) => {
                         </div>
 
                         <div
-                            className="student-table"
                             style={{
-                                width: "8in", // matches table width assuming 8in for 40 columns
+                                width: "8in",
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginTop: "-10px",
-
+                                marginTop: "20px",
                                 boxSizing: "border-box",
                                 padding: "10px 0",
                             }}
@@ -1378,78 +1376,80 @@ const ExaminationProfile = ({ personId }) => {
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "space-between", // spread logo, text, profile+QR
-                                    flexWrap: "nowrap",
+                                    justifyContent: "center", // Center contents
+                                    position: "relative", // allow absolute positioning
                                 }}
                             >
-                                {/* Logo (Left Side) */}
-                                <div style={{ flexShrink: 0 }}>
+                                {/* LEFT SIDE: Logo */}
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
                                     <img
                                         src={fetchedLogo}
                                         alt="School Logo"
                                         style={{
-                                            width: "120px",
-                                            height: "120px",
+                                            width: "140px",
+                                            height: "140px",
+
                                             objectFit: "cover",
                                             marginLeft: "10px",
                                             marginTop: "-25px",
-                                            borderRadius: "50%", // ✅ Makes it perfectly circular
-
+                                            borderRadius: "50%",
                                         }}
                                     />
                                 </div>
 
-                                {/* Text Block (Center) */}
+                                {/* CENTER TEXT BLOCK */}
                                 <div
                                     style={{
-                                        flexGrow: 1,
                                         textAlign: "center",
                                         fontSize: "14px",
                                         fontFamily: "Arial",
-                                        letterSpacing: "5",
                                         lineHeight: 1.4,
                                         paddingTop: 0,
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div
-                                        style={{ fontFamily: "Arial", fontSize: "14px" }}
-                                    >
+                                    <div style={{ fontFamily: "Arial", fontSize: "14px" }}>
                                         Republic of the Philippines
                                     </div>
+
                                     <div
                                         style={{
-
                                             letterSpacing: "2px",
-                                            fontFamily: "Times new roman",
+                                            fontFamily: "Times New Roman",
                                             fontWeight: "bold",
-                                            fontSize: "16px"
+                                            fontSize: "16px",
                                         }}
                                     >
                                         {firstLine}
                                     </div>
+
                                     {secondLine && (
                                         <div
                                             style={{
-
                                                 letterSpacing: "2px",
                                                 fontWeight: "bold",
-                                                fontFamily: "Times new roman",
-                                                fontSize: "16px"
+                                                fontFamily: "Times New Roman",
+                                                fontSize: "16px",
                                             }}
                                         >
                                             {secondLine}
                                         </div>
                                     )}
+
                                     {campusAddress && (
                                         <div style={{ fontSize: "14px", fontFamily: "Arial" }}>
                                             {campusAddress}
                                         </div>
                                     )}
 
-                                    <div
-                                        style={{ fontFamily: "Arial", letterSpacing: "1px" }}
-                                    >
+                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
                                         <b>OFFICE OF THE ADMISSION SERVICES</b>
                                     </div>
 
@@ -1468,51 +1468,8 @@ const ExaminationProfile = ({ personId }) => {
                                         Applicant's Change Course Form
                                     </div>
                                 </div>
-
-                                {/* Profile + QR Code (Right Side) */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "row",   // ✅ side by side
-                                        alignItems: "center",
-                                        marginRight: "10px",
-                                        gap: "10px",            // ✅ 10px space between them
-                                    }}
-                                >
-                                    {/* Profile Image (2x2) */}
-                                    <div
-                                        style={{
-                                            width: "1.3in",
-                                            height: "1.3in",
-                                            border: "1px solid black",
-                                            overflow: "hidden",
-                                            flexShrink: 0,
-                                            marginTop: "-15px"
-                                        }}
-                                    >
-                                        {person?.profile_img ? (
-                                            <img
-                                                src={`http://localhost:5000/uploads/${person.profile_img}`}
-                                                alt="Profile"
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "cover",
-
-                                                }}
-                                            />
-                                        ) : (
-                                            <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
-                                        )}
-                                    </div>
-
-
-
-                                </div>
-
                             </div>
                         </div>
-
 
                         <br />
                         <br />
@@ -2114,95 +2071,93 @@ const ExaminationProfile = ({ personId }) => {
                         </div>
 
                         <div
-
                             style={{
-                                width: "8in", // matches table width assuming 8in for 40 columns
+                                width: "8in",
                                 maxWidth: "100%",
                                 margin: "0 auto",
-                                marginTop: "-10px",
-
+                                marginTop: "20px",
                                 boxSizing: "border-box",
                                 padding: "10px 0",
                             }}
                         >
-
                             <div
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "space-between", // spread logo, text, profile+QR
-                                    flexWrap: "nowrap",
-
+                                    justifyContent: "center", // Center contents
+                                    position: "relative", // allow absolute positioning
                                 }}
                             >
-                                {/* Logo (Left Side) */}
-                                <div style={{ flexShrink: 0 }}>
+                                {/* LEFT SIDE: Logo */}
+                                <div
+                                    style={{
+                                        position: "absolute",
+                                        left: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                    }}
+                                >
                                     <img
                                         src={fetchedLogo}
                                         alt="School Logo"
                                         style={{
-                                            width: "120px",
-                                            height: "120px",
+                                            width: "140px",
+                                            height: "140px",
+
                                             objectFit: "cover",
                                             marginLeft: "10px",
                                             marginTop: "-25px",
-                                            borderRadius: "50%", // ✅ Makes it perfectly circular
-
+                                            borderRadius: "50%",
                                         }}
                                     />
                                 </div>
 
-                                {/* Text Block (Center) */}
+                                {/* CENTER TEXT BLOCK */}
                                 <div
                                     style={{
-                                        flexGrow: 1,
                                         textAlign: "center",
                                         fontSize: "14px",
                                         fontFamily: "Arial",
-                                        letterSpacing: "5",
                                         lineHeight: 1.4,
                                         paddingTop: 0,
                                         paddingBottom: 0,
                                     }}
                                 >
-                                    <div
-                                        style={{ fontFamily: "Arial", fontSize: "14px" }}
-                                    >
+                                    <div style={{ fontFamily: "Arial", fontSize: "14px" }}>
                                         Republic of the Philippines
                                     </div>
+
                                     <div
                                         style={{
-
                                             letterSpacing: "2px",
-                                            fontFamily: "Times new roman",
+                                            fontFamily: "Times New Roman",
                                             fontWeight: "bold",
-                                            fontSize: "16px"
+                                            fontSize: "16px",
                                         }}
                                     >
                                         {firstLine}
                                     </div>
+
                                     {secondLine && (
                                         <div
                                             style={{
-
                                                 letterSpacing: "2px",
                                                 fontWeight: "bold",
-                                                fontFamily: "Times new roman",
-                                                fontSize: "16px"
+                                                fontFamily: "Times New Roman",
+                                                fontSize: "16px",
                                             }}
                                         >
                                             {secondLine}
                                         </div>
                                     )}
+
                                     {campusAddress && (
                                         <div style={{ fontSize: "14px", fontFamily: "Arial" }}>
                                             {campusAddress}
                                         </div>
                                     )}
 
-                                    <div
-                                        style={{ fontFamily: "Arial", letterSpacing: "1px" }}
-                                    >
+                                    <div style={{ fontFamily: "Arial", letterSpacing: "1px" }}>
                                         <b>OFFICE OF THE ADMISSION SERVICES</b>
                                     </div>
 
@@ -2221,48 +2176,6 @@ const ExaminationProfile = ({ personId }) => {
                                         Applicant's Change Course Form
                                     </div>
                                 </div>
-
-                                {/* Profile + QR Code (Right Side) */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "row",   // ✅ side by side
-                                        alignItems: "center",
-                                        marginRight: "10px",
-                                        gap: "10px",            // ✅ 10px space between them
-                                    }}
-                                >
-                                    {/* Profile Image (2x2) */}
-                                    <div
-                                        style={{
-                                            width: "1.3in",
-                                            height: "1.3in",
-                                            border: "1px solid black",
-                                            overflow: "hidden",
-                                            flexShrink: 0,
-                                            marginTop: "-15px"
-                                        }}
-                                    >
-                                        {person?.profile_img ? (
-                                            <img
-                                                src={`http://localhost:5000/uploads/${person.profile_img}`}
-                                                alt="Profile"
-                                                style={{
-                                                    width: "100%",
-                                                    height: "100%",
-                                                    objectFit: "cover",
-
-                                                }}
-                                            />
-                                        ) : (
-                                            <span style={{ fontSize: "12px", color: "#888" }}>No Image</span>
-                                        )}
-                                    </div>
-
-
-
-                                </div>
-
                             </div>
                         </div>
 
