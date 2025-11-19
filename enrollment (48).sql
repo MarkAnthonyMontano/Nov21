@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 16, 2025 at 06:50 PM
+-- Generation Time: Nov 19, 2025 at 04:46 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -154,10 +154,7 @@ INSERT INTO `course_table` (`course_id`, `course_code`, `course_description`, `c
 (75, 'SYSADMLB', 'Systems Administration and Maintenance (Laboratory)', 0, 1, '0', '0'),
 (76, 'SPISSUES', 'Social and Professional Issues', 3, 0, '0', '0'),
 (77, 'ITINTERN', 'Practicum / Internship', 10, 0, '0', '0'),
-(78, 'GELIFEWR', 'Life And Work of Rizal', 2, 0, '0', '0'),
-(79, 'GELIFEWR', 'Life And Work of Rizal', 2, 0, '0', '0'),
-(80, 'DATANALY', 'Data Analytics ', 3, 0, '0', '0'),
-(81, 'ITTHESIS', 'THESIS 2', 2, 1, '0', '0');
+(78, 'GELIFEWR', 'Life And Work of Rizal', 2, 0, '0', '0');
 
 -- --------------------------------------------------------
 
@@ -191,7 +188,7 @@ INSERT INTO `curriculum_table` (`curriculum_id`, `year_id`, `program_id`, `lock_
 (12, 12, 12, 0),
 (13, 13, 13, 0),
 (14, 14, 14, 0),
-(15, 15, 15, 0),
+(15, 3, 15, 0),
 (16, 16, 16, 0),
 (17, 17, 17, 0),
 (18, 18, 18, 0),
@@ -233,7 +230,8 @@ INSERT INTO `curriculum_table` (`curriculum_id`, `year_id`, `program_id`, `lock_
 (54, 54, 54, 0),
 (55, 55, 55, 0),
 (56, 5, 58, 0),
-(57, 4, 15, 0);
+(57, 4, 15, 0),
+(58, 12, 4, 0);
 
 -- --------------------------------------------------------
 
@@ -929,7 +927,8 @@ INSERT INTO `dprtmnt_section_table` (`id`, `curriculum_id`, `section_id`, `dssta
 (493, 53, 1, 0),
 (494, 54, 1, 0),
 (495, 55, 1, 0),
-(496, 56, 1, 0);
+(496, 56, 1, 0),
+(517, 1, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -988,24 +987,37 @@ CREATE TABLE `enrolled_subject` (
 --
 
 INSERT INTO `enrolled_subject` (`id`, `student_number`, `curriculum_id`, `course_id`, `active_school_year_id`, `midterm`, `finals`, `final_grade`, `grades_status`, `en_remarks`, `department_section_id`, `status`, `fe_status`, `created_at`) VALUES
-(1004, '202500001', 1, 3, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1005, '202500001', 1, 4, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1006, '202500001', 1, 5, 3, '1.00', '1.75', '1.38', '1.38', 1, 1, 1, 1, '2025-11-14 05:32:58'),
-(1007, '202500001', 1, 6, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1008, '202500001', 1, 8, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1009, '202500001', 1, 7, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1010, '202500001', 1, 9, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1011, '202500001', 1, 10, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1012, '202500001', 1, 11, 3, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 1, '2025-11-14 05:32:58'),
-(1013, '202500001', 1, 3, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1014, '202500001', 1, 4, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1015, '202500001', 1, 5, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1016, '202500001', 1, 7, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1017, '202500001', 1, 8, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1018, '202500001', 1, 6, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1019, '202500001', 1, 9, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1020, '202500001', 1, 10, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02'),
-(1021, '202500001', 1, 11, 16, '0.00', '0.00', '0.00', NULL, 0, 1, 1, 0, '2025-11-16 13:04:02');
+(1053, '224-06342M', 15, 54, 3, '0', '0', '1.25', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1054, '224-06342M', 15, 53, 3, '0', '0', '2', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1055, '224-06342M', 15, 46, 3, '0', '0', '1.5', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1056, '224-06342M', 15, 50, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1057, '224-06342M', 15, 49, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1058, '224-06342M', 15, 56, 3, '0', '0', '1.25', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1059, '224-06342M', 15, 55, 3, '0', '0', '1.25', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1060, '224-06342M', 15, 51, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1061, '224-06342M', 15, 52, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1062, '224-06342M', 15, 48, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:08'),
+(1063, '224-06342M', 15, 47, 3, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1064, '224-06342M', 15, 58, 2, '0', '0', '1.5', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1065, '224-06342M', 15, 57, 2, '0', '0', '1.75', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1066, '224-06342M', 15, 66, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1067, '224-06342M', 15, 65, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1068, '224-06342M', 15, 60, 2, '0', '0', '1.25', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1069, '224-06342M', 15, 62, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1070, '224-06342M', 15, 61, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1071, '224-06342M', 15, 64, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1072, '224-06342M', 15, 63, 2, '0', '0', '1', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1073, '224-06342M', 15, 59, 2, '0', '0', '1.75', NULL, 1, 0, 0, 0, '2025-11-19 03:42:09'),
+(1074, '224-06342M', 15, 67, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1075, '224-06342M', 15, 73, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1076, '224-06342M', 15, 72, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1077, '224-06342M', 15, 70, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1078, '224-06342M', 15, 71, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1079, '224-06342M', 15, 76, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1080, '224-06342M', 15, 75, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1081, '224-06342M', 15, 74, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1082, '224-06342M', 15, 68, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09'),
+(1083, '224-06342M', 15, 69, 16, '0', '0', '0', NULL, 0, 0, 0, 0, '2025-11-19 03:42:09');
 
 -- --------------------------------------------------------
 
@@ -1405,7 +1417,8 @@ INSERT INTO `page_table` (`id`, `page_description`, `page_group`, `created_at`) 
 (96, 'Account Dashboard', 'registrar', '2025-10-30 15:28:46'),
 (97, 'History Logs', 'registrar', '2025-10-30 16:01:18'),
 (98, 'Announcement For Admission', 'registrar', '2025-11-14 02:47:26'),
-(99, 'TOSF CRUD', 'registrar', '2025-11-16 13:14:07');
+(99, 'TOSF CRUD', 'registrar', '2025-11-16 13:14:07'),
+(100, 'Program Evaluation', 'registrar', '2025-11-17 23:37:48');
 
 -- --------------------------------------------------------
 
@@ -1957,7 +1970,7 @@ INSERT INTO `program_tagging_table` (`program_tagging_id`, `curriculum_id`, `yea
 (76, 1, 4, 1, 76),
 (77, 1, 4, 2, 77),
 (78, 2, 3, 2, 71),
-(79, 4, 1, 2, 2);
+(81, 58, 1, 2, 2);
 
 -- --------------------------------------------------------
 
@@ -2889,7 +2902,7 @@ CREATE TABLE `user_accounts` (
 --
 
 INSERT INTO `user_accounts` (`id`, `person_id`, `employee_id`, `profile_picture`, `role`, `last_name`, `middle_name`, `first_name`, `email`, `password`, `status`, `dprtmnt_id`) VALUES
-(1, 1, NULL, NULL, 'student', NULL, NULL, NULL, 'markmontao2671@gmail.com', '$2b$10$1z0TPyKFo6qtCrVAaA1D4e3qANATLI.pyTLqZinmmT8sF2zMALkDu', 1, 1),
+(1, 1, NULL, NULL, 'student', NULL, NULL, NULL, 'markmontao2671@gmail.com', '$2b$10$VZXiFSmyRcQ5SUkjki1DXuHsKvrnI7/5PHcM7DXVdIbT3ihsQK8YG', 1, 1),
 (2, 4, NULL, NULL, 'student', NULL, NULL, NULL, 'markmontano0626@gmail.com', '$2b$10$1z0TPyKFo6qtCrVAaA1D4e3qANATLI.pyTLqZinmmT8sF2zMALkDu', 1, NULL),
 (12, 13, NULL, NULL, 'student', NULL, NULL, NULL, 'benjamin.anderson13@example.com', '$2b$10$QEsrP1R1oVa.eZiqlZRgoeFaaIJSX2ZuR9DhZvArwINLs3mR2a/cm', 0, NULL),
 (13, 14, NULL, NULL, 'student', NULL, NULL, NULL, 'ava.thomas14@example.com', '$2b$10$Bqh2HDkbbs0PabLc1ycQpOYj4RBqeb4rR7b/Iu8B5b3mM7cAFPY8W', 0, NULL),
@@ -2960,7 +2973,6 @@ INSERT INTO `user_accounts` (`id`, `person_id`, `employee_id`, `profile_picture`
 (79, 1381, '111111', NULL, 'registrar', 'Dhani', 'D. ', 'San Jose', 'disanjose@gmail.com', '$2b$10$gT9D98Juy/tht8U.ZIUwyecnp4BPpOECKwzVuR6CvYw6UkxQmnHdO', 1, 3),
 (80, 1382, NULL, 'undefined_profile.png', 'student', 'Montano', 'Placido', 'Mark Anthony', 'markmontano888@gmail.com', '$2b$10$8HCsU/TuwWOZAN5/HqYRL.Dyhwg5vK6trjvaNStVLdLF7hdc87N1S', 1, 5),
 (81, 341, NULL, NULL, 'student', NULL, NULL, NULL, 'montano.ma.bsinfotech@gmail.com', '$2b$10$mwAgpMiEbt7UQKoketz/hei3/ibD9QL/jh5UHMrfxu5ihy7/VHR3G', 1, 6),
-(82, 1383, NULL, NULL, 'student', 'Montano', 'Placido', 'Mark Anthony', 'markmontano222@gmail.com', '$2b$10$AdN/pSDBTNMvbj9mbcmsMu33VqTcwyfu/rRkSGOCM0TxKjFT7Nbdi', 1, 7),
 (89, 343, NULL, NULL, 'student', NULL, NULL, NULL, 'morales.ta.bsinfotech@gmail.com', '$2b$10$8o/rEwI.5rU/koEz/HpIvO3GFjHCr2jEpH91VokYigNbwYGzJ1wYa', NULL, 1);
 
 -- --------------------------------------------------------
@@ -3300,7 +3312,7 @@ ALTER TABLE `course_table`
 -- AUTO_INCREMENT for table `curriculum_table`
 --
 ALTER TABLE `curriculum_table`
-  MODIFY `curriculum_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `curriculum_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `dprtmnt_curriculum_table`
@@ -3324,7 +3336,7 @@ ALTER TABLE `dprtmnt_room_table`
 -- AUTO_INCREMENT for table `dprtmnt_section_table`
 --
 ALTER TABLE `dprtmnt_section_table`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=517;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=518;
 
 --
 -- AUTO_INCREMENT for table `dprtmnt_table`
@@ -3336,7 +3348,7 @@ ALTER TABLE `dprtmnt_table`
 -- AUTO_INCREMENT for table `enrolled_subject`
 --
 ALTER TABLE `enrolled_subject`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1022;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1084;
 
 --
 -- AUTO_INCREMENT for table `evaluation_table`
@@ -3396,13 +3408,13 @@ ALTER TABLE `prof_table`
 -- AUTO_INCREMENT for table `program_table`
 --
 ALTER TABLE `program_table`
-  MODIFY `program_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `program_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `program_tagging_table`
 --
 ALTER TABLE `program_tagging_table`
-  MODIFY `program_tagging_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
+  MODIFY `program_tagging_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT for table `question_table`
