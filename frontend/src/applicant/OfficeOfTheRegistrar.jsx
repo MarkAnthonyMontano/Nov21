@@ -511,19 +511,35 @@ const OfficeOfTheRegistrar = () => {
                                 >
                                     Search App. No.
                                 </td>
-                                <td
-                                    colSpan={10}
-                                    style={{
-                                        fontFamily: "Times New Roman",
-                                        fontSize: "12px",
-                                        paddingTop: "5px",
-                                        marginTop: 0,
-                                        textAlign: "left",
-                                        border: "1px solid black",
-                                    }}
-                                >
-                                    {person.student_number || ""}
-                                </td>
+                               <td colSpan={10}
+                                        style={{
+                                            border: "1px solid black",
+                                            textAlign: "left",
+                                            fontFamily: "Times new Roman",
+                                            fontWeight: "bold",
+                                            fontSize: "14px",
+                                            verticalAlign: "top"
+                                        }}
+                                    >
+                                   
+                                        <input
+                                            type="text"
+                                            value={person.applicant_number || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                fontWeight: "normal",
+                                                border: "none",
+                                                textAlign: "center",
+                                                outline: "none",
+                                                fontSize: "12px",
+                                                fontFamily: "Times new Roman",
+                                           
+                                            }}
+                                        />
+                                    </td>
+
 
                             </tr>
 

@@ -134,7 +134,7 @@ const PersonalDataForm = () => {
         try {
             const res = await axios.get(`http://localhost:5000/api/person/${id}`);
             setPerson(res.data); // make sure backend returns the correct format
-         
+
         } catch (error) {
             console.error("Failed to fetch person:", error);
         }
@@ -158,7 +158,7 @@ const PersonalDataForm = () => {
             setUser(storedUser);
             setUserRole(storedRole);
             setUserID(storedID);
-       
+
 
             if (storedRole === "applicant" || storedRole === "registrar") {
                 fetchPersonData(storedID);
@@ -308,7 +308,7 @@ const PersonalDataForm = () => {
 
     }
 
-  
+
 
 
     return (
@@ -898,7 +898,6 @@ const PersonalDataForm = () => {
                                 <tr>
                                     {/* STUDENT ID NUMBER */}
                                     <td colSpan={13}
-
                                         style={{
                                             border: "1px solid black",
                                             textAlign: "left",
@@ -906,11 +905,27 @@ const PersonalDataForm = () => {
                                             fontWeight: "bold",
                                             fontSize: "14px",
                                             verticalAlign: "top"
-                                        }}>
+                                        }}
+                                    >
                                         <div style={{ fontWeight: "bold" }}>APPLICANT ID:</div>
 
-                                    
+                                        <input
+                                            type="text"
+                                            value={person.applicant_number || ""}
+                                            readOnly
+                                            style={{
+                                                marginTop: "5px",
+                                                width: "100%",
+                                                fontWeight: "normal",
+                                                border: "none",
+                                                outline: "none",
+                                                fontSize: "15px",
+                                                fontFamily: "Times new Roman",
+                                           
+                                            }}
+                                        />
                                     </td>
+
 
                                     {/* LEARNER’S REFERENCE NUMBER */}
                                     <td colSpan={13}

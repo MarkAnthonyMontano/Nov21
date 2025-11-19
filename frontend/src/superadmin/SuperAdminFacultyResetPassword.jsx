@@ -186,10 +186,14 @@ const SuperAdminFacultyResetPassword = () => {
     }
   });
 
-  if (loading || hasAccess === null)
-    return <LoadingOverlay open={loading} message="Check Access" />;
-  if (!hasAccess) return <Unauthorized />;
+// ✅ Access Guards
+  if (loading || hasAccess === null) {
+    return <LoadingOverlay open={loading} message="Checking Access..." />;
+  }
 
+  if (!hasAccess) {
+    return <Unauthorized />;
+  }
   return (
     <Box>
       {/* Header */}

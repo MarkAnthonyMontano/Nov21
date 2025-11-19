@@ -181,14 +181,14 @@ const SuperAdminApplicantResetPassword = () => {
     }
   });
 
+// ✅ Access Guards
   if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Check Access" />;
+    return <LoadingOverlay open={loading} message="Checking Access..." />;
   }
 
   if (!hasAccess) {
     return <Unauthorized />;
   }
-
   return (
     <Box>
       {/* Header */}

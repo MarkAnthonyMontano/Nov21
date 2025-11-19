@@ -33,6 +33,19 @@ import SearchIcon from "@mui/icons-material/Search";
 
 
 const InterviewerApplicantList = () => {
+  const location = useLocation();
+
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const scheduleId = params.get("schedule");
+    const interviewerName = params.get("interviewer");
+
+    if (scheduleId) {
+      setSearchQuery(interviewerName || "");  // pre-fill search bar
+      handleSearch(); // immediately fetch applicants for this schedule
+    }
+  }, [location.search]);
 
   const settings = useContext(SettingsContext);
   const [fetchedLogo, setFetchedLogo] = useState(null);
@@ -43,6 +56,7 @@ const InterviewerApplicantList = () => {
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
+
   const pageId = 36;
 
 
@@ -188,19 +202,22 @@ const InterviewerApplicantList = () => {
 
   });
 
-  const handleSearch = async () => {
+  const handleSearch = async (scheduleId = null) => {
     try {
       const { data } = await axios.get("http://localhost:5000/api/interviewers", {
-        params: { query: searchQuery },
+        params: {
+          query: searchQuery,
+          schedule: scheduleId, // send schedule ID if provided
+        },
       });
 
       setInterviewerData(data[0]?.schedule || null);
-
-      setApplicants(data[0]?.applicants || []); // list of applicants
+      setApplicants(data[0]?.applicants || []);
     } catch (err) {
       console.error(err);
     }
   };
+
 
 
   const [curriculumOptions, setCurriculumOptions] = useState([]);
@@ -621,7 +638,7 @@ const InterviewerApplicantList = () => {
                 <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Program</TableCell>
                 <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Building</TableCell>
                 <TableCell sx={{ color: "white", textAlign: "center", border: `2px solid ${borderColor}` }}>Room</TableCell>
-               
+
               </TableRow>
             </TableHead>
 
@@ -650,7 +667,7 @@ const InterviewerApplicantList = () => {
                   <TableCell align="left" sx={{ border: `2px solid ${borderColor}` }}>
                     {a.room_description || interviewerData?.room_description || "N/A"} {/* ✅ NEW */}
                   </TableCell>
-             
+
                 </TableRow>
               ))}
             </TableBody>

@@ -67,6 +67,8 @@ const SuperAdminRegistrarResetPassword = () => {
   const pageId = 83;
 
   const [employeeID, setEmployeeID] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);  // for search/reset
+
 
   useEffect(() => {
 
@@ -112,7 +114,6 @@ const SuperAdminRegistrarResetPassword = () => {
   };
 
 
-  // ✅ Search registrar info by email
   useEffect(() => {
     const fetchInfo = async () => {
       if (!searchQuery) {
@@ -120,44 +121,43 @@ const SuperAdminRegistrarResetPassword = () => {
         setSearchError("");
         return;
       }
-      setLoading(true);
+
+      setSearchLoading(true);  // ✅ use searchLoading
       setResetMsg("");
       setSearchError("");
 
       try {
-        const res = await axios.post("http://localhost:5000/superadmin-get-registrar", {
-          search: searchQuery, // changed from email → search
-        });
+        const res = await axios.post(
+          "http://localhost:5000/superadmin-get-registrar",
+          { search: searchQuery }
+        );
         setUserInfo(res.data);
       } catch (err) {
         setSearchError(err.response?.data?.message || "No registrar found.");
         setUserInfo(null);
       } finally {
-        setLoading(false);
+        setSearchLoading(false);  // ✅ use searchLoading
       }
     };
-
 
     const delayDebounce = setTimeout(fetchInfo, 600);
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
-  // ✅ Reset password handler
   const handleReset = async () => {
     if (!userInfo) return;
-    setLoading(true);
+
+    setSearchLoading(true);  // ✅ use searchLoading
     try {
       const res = await axios.post(
         "http://localhost:5000/forgot-password-registrar",
-        { email: userInfo.email } // ✅ use fetched email instead of searchQuery
+        { email: userInfo.email }
       );
       setResetMsg(res.data.message);
     } catch (err) {
-      setSearchError(
-        err.response?.data?.message || "Error resetting password"
-      );
+      setSearchError(err.response?.data?.message || "Error resetting password");
     } finally {
-      setLoading(false);
+      setSearchLoading(false);  // ✅ use searchLoading
     }
   };
 
@@ -200,11 +200,10 @@ const SuperAdminRegistrarResetPassword = () => {
     }
   });
 
-  // ✅ Loading / Unauthorized display
   if (loading || hasAccess === null) {
-    return <LoadingOverlay open={loading} message="Check Access" />;
+    return <LoadingOverlay open={loading} message="Checking Access..." />;
   }
-
+  
   if (!hasAccess) {
     return <Unauthorized />;
   }

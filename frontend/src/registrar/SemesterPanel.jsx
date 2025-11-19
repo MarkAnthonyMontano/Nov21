@@ -260,8 +260,8 @@ const SemesterPanel = () => {
                   <TableBody>
                     {semesters.map((semester, index) => (
                       <TableRow key={index}>
-                        <TableCell sx={{ border: `2px solid ${borderColor}`, }}>{semester.semester_id}</TableCell>
-                        <TableCell sx={{ border: `2px solid ${borderColor}`, }}>{semester.semester_description}</TableCell>
+                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_id}</TableCell>
+                        <TableCell sx={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>{semester.semester_description}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

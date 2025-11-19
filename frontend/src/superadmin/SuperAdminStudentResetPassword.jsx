@@ -57,6 +57,8 @@ const SuperAdminStudentResetPassword = () => {
   const [user, setUser] = useState("");
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const pageId = 91;
 
@@ -107,11 +109,10 @@ const SuperAdminStudentResetPassword = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [userInfo, setUserInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
+
   const [resetMsg, setResetMsg] = useState("");
   const [searchError, setSearchError] = useState("");
 
-  // ✅ Auto-fetch student info when search changes
   useEffect(() => {
     const fetchInfo = async () => {
       if (!searchQuery) {
@@ -119,7 +120,7 @@ const SuperAdminStudentResetPassword = () => {
         setSearchError("");
         return;
       }
-      setLoading(true);
+      setSearchLoading(true);
       setResetMsg("");
       setSearchError("");
 
@@ -132,7 +133,7 @@ const SuperAdminStudentResetPassword = () => {
         setSearchError(err.response?.data?.message || "No student found.");
         setUserInfo(null);
       } finally {
-        setLoading(false);
+        setSearchLoading(false);
       }
     };
 
@@ -140,14 +141,16 @@ const SuperAdminStudentResetPassword = () => {
     return () => clearTimeout(delayDebounce);
   }, [searchQuery]);
 
-  // ✅ Reset password
+
   const handleReset = async () => {
     if (!userInfo) return;
     setLoading(true);
+
     try {
       const res = await axios.post("http://localhost:5000/forgot-password-student", {
-        student_number: userInfo.student_number,
+        search: searchQuery,   // 🔥 this is the FIX
       });
+
       setResetMsg(res.data.message);
     } catch (err) {
       setSearchError(err.response?.data?.message || "Error resetting password");
@@ -155,6 +158,7 @@ const SuperAdminStudentResetPassword = () => {
       setLoading(false);
     }
   };
+
 
   // ✅ Update status
   const handleStatusChange = async (e) => {
@@ -171,11 +175,10 @@ const SuperAdminStudentResetPassword = () => {
     }
   };
 
-  // ✅ Access Guards
   if (loading || hasAccess === null) {
     return <LoadingOverlay open={loading} message="Checking Access..." />;
   }
-
+  
   if (!hasAccess) {
     return <Unauthorized />;
   }

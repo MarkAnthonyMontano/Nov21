@@ -218,7 +218,7 @@ const DepartmentRegistration = () => {
       <br />
 
 
-      <Box display="flex" justifyContent="flex-end" mb={2}>
+      <Box display="flex" mb={2}>
         <Button
           variant="contained"
           sx={{ backgroundColor: "#1967d2", "&:hover": { backgroundColor: "#000000" } }}

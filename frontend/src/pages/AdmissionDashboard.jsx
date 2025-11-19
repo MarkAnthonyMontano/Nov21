@@ -160,7 +160,7 @@ const AdmissionDashboardPanel = () => {
         { title: "DOCUMENTS SUBMITTED", link: "/registrar_requirements", icon: FolderCopy, page_id: 49 },
         { title: "QUALIFYING / INTERVIEW ROOM MANAGEMENT", link: "/assign_qualifying_interview_exam", icon: MeetingRoom, page_id: 10 },
         { title: "QUALIFYING / INTERVIEW SCHEDULE MANAGEMENT", link: "/assign_schedule_applicants_qualifying_interview", icon: EditCalendar, page_id: 12 },
-        { title: "QUALIFYING / INTERVIEWER APPLICANT LIST", link: "/qualifying_interviewer_applicant_list", icon: People, page_id: 36 },
+        { title: "QUALIFYING / INTERVIEWER APPLICANT LIST", link: "/enrollment_schedule_room_list", icon: People, page_id: 36 },
         { title: "QUALIFYING / INTERVIEW EXAM SCORES", link: "/qualifying_interview_exam_scores", icon: Assessment, page_id: 37 },
         { title: "STUDENT NUMBERING FOR COLLEGE", link: "/student_numbering_per_college", icon: FormatListNumbered, page_id: 60 },
         { title: "COURSE TAGGING", link: "/course_tagging", icon: Class, page_id: 17 },

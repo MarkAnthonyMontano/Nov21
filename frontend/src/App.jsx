@@ -76,6 +76,7 @@ import RegistrarExaminationProfile from './registrar/RegistrarExaminationProfile
 import AssignScheduleToApplicants from './registrar/AssignScheduleToApplicants';
 import AssignEntranceExam from './registrar/AssignEntranceExam';
 import AdmissionScheduleTile from './registrar/AdmissionScheduleTile';
+import EnrollmentScheduleTile from './registrar/EnrollmentScheduleTile';
 import ProctorApplicantList from './registrar/ProctorApplicantList';
 import ApplicantScoring from './registrar/ApplicantScoring';
 import QualifyingInterviewExamScore from './registrar/QualifyingInterviewExamScore';
@@ -372,7 +373,8 @@ function App() {
 
                     <Route path="/assign_entrance_exam" element={<ProtectedRoute><AssignEntranceExam /></ProtectedRoute>} />
                     <Route path="/assign_schedule_applicant" element={<ProtectedRoute><AssignScheduleToApplicants /></ProtectedRoute>} />
-                                        <Route path="/admission_schedule_room_list" element={<ProtectedRoute><AdmissionScheduleTile /></ProtectedRoute>} />
+                    <Route path="/admission_schedule_room_list" element={<ProtectedRoute><AdmissionScheduleTile /></ProtectedRoute>} />
+                    <Route path="/enrollment_schedule_room_list" element={<ProtectedRoute><EnrollmentScheduleTile /></ProtectedRoute>} />
                     <Route path="/applicant_scoring" element={<ProtectedRoute><ApplicantScoring /></ProtectedRoute>} />
 
                     <Route path="/assign_qualifying_interview_exam" element={<ProtectedRoute><AssignQualifyingInterviewExam /></ProtectedRoute>} />

@@ -8,7 +8,9 @@ import {
   MenuItem,
   Select,
   InputLabel,
-  FormControl
+  FormControl,
+  Snackbar,       // ✅ Added
+  Alert           // ✅ Added
 } from '@mui/material';
 import Unauthorized from "../components/Unauthorized";
 import LoadingOverlay from "../components/LoadingOverlay";
@@ -68,6 +70,13 @@ const DepartmentSection = () => {
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // ✅ Snackbar state
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // success | error | info | warning
+  });
   const pageId = 20;
 
   const [employeeID, setEmployeeID] = useState("");
@@ -159,7 +168,11 @@ const DepartmentSection = () => {
   const handleAddDepartmentSection = async () => {
     const { curriculum_id, section_id } = dprtmntSection;
     if (!curriculum_id || !section_id) {
-      alert("Please select both curriculum and section.");
+      setSnackbar({
+        open: true,
+        message: "Please select both curriculum and section.",
+        severity: "error",
+      });
       return;
     }
 
@@ -167,28 +180,21 @@ const DepartmentSection = () => {
       await axios.post('http://localhost:5000/department_section', dprtmntSection);
       setDprtmntSection({ curriculum_id: '', section_id: '' });
       fetchDepartmentSections();
+      setSnackbar({
+        open: true,
+        message: "Department section added successfully!",
+        severity: "success",
+      });
     } catch (err) {
       console.error(err);
+      setSnackbar({
+        open: true,
+        message: "Failed to add department section.",
+        severity: "error",
+      });
     }
   };
 
-  // 🔒 Disable right-click
-  document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-  // 🔒 Block DevTools shortcuts + Ctrl+P silently
-  document.addEventListener('keydown', (e) => {
-    const isBlockedKey =
-      e.key === 'F12' || // DevTools
-      e.key === 'F11' || // Fullscreen
-      (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j')) || // Ctrl+Shift+I/J
-      (e.ctrlKey && e.key.toLowerCase() === 'u') || // Ctrl+U (View Source)
-      (e.ctrlKey && e.key.toLowerCase() === 'p');   // Ctrl+P (Print)
-
-    if (isBlockedKey) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
 
   // Put this at the very bottom before the return 
   if (loading || hasAccess === null) {
@@ -275,7 +281,7 @@ const DepartmentSection = () => {
               <MenuItem value="">Select Curriculum</MenuItem>
               {curriculumList.map((curr) => (
                 <MenuItem key={`curr-${curr.curriculum_id}`} value={curr.curriculum_id}>
-                  {curr.year_description} - {curr.program_description} | {curr.curriculum_id}
+                  {curr.year_description} - {curr.program_description}  {curr.major} | {curr.curriculum_id}
                 </MenuItem>
               ))}
             </Select>
@@ -343,7 +349,7 @@ const DepartmentSection = () => {
                     style={{
                       border: `2px solid ${borderColor}`,
                       padding: "8px",
-                       backgroundColor: settings?.header_color || "#1976d2",
+                      backgroundColor: settings?.header_color || "#1976d2",
                       textAlign: "center",
                       color: "#fff",
                     }}
@@ -354,9 +360,9 @@ const DepartmentSection = () => {
                     style={{
                       border: `2px solid ${borderColor}`,
                       padding: "8px",
-                       backgroundColor: settings?.header_color || "#1976d2",
+                      backgroundColor: settings?.header_color || "#1976d2",
                       textAlign: "center",
-                     color: "#fff",
+                      color: "#fff",
                     }}
                   >
                     Section Description
@@ -365,7 +371,7 @@ const DepartmentSection = () => {
                     style={{
                       border: `2px solid ${borderColor}`,
                       padding: "8px",
-                       backgroundColor: settings?.header_color || "#1976d2",
+                      backgroundColor: settings?.header_color || "#1976d2",
                       textAlign: "center",
                       color: "#fff",
                     }}
@@ -408,6 +414,23 @@ const DepartmentSection = () => {
                 ))}
               </tbody>
             </table>
+
+
+            <Snackbar
+              open={snackbar.open}
+              autoHideDuration={3000}
+              onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }}
+            >
+              <Alert
+                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                severity={snackbar.severity}
+                sx={{ width: "100%" }}
+              >
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
+
 
           </Box>
         </Box>

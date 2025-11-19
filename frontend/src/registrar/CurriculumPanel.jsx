@@ -326,7 +326,8 @@ const CurriculumPanel = () => {
               <option value="">Choose Program</option>
               {programList.map((program) => (
                 <option key={program.program_id} value={program.program_id}>
-                  {program.program_description} | {program.program_code}
+                  ({program.program_code}) - {program.program_description} {program.major}
+
                 </option>
               ))}
             </select>
@@ -367,10 +368,50 @@ const CurriculumPanel = () => {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff"  }}>ID</th>
-                <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff"}}>Year</th>
-                <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Program</th>
-                <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Status</th>
+                <th
+                  style={{
+                    border: `2px solid ${borderColor}`,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "#fff",
+                    width: "10%",
+                    textAlign: "center",
+                  }}
+                >
+                  ID
+                </th>
+                <th
+                  style={{
+                    border: `2px solid ${borderColor}`,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "#fff",
+                    width: "15%",
+                    textAlign: "center",
+                  }}
+                >
+                  Year
+                </th>
+                <th
+                  style={{
+                    border: `2px solid ${borderColor}`,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "#fff",
+                    width: "55%",
+                    textAlign: "left",
+                  }}
+                >
+                  Program
+                </th>
+                <th
+                  style={{
+                    border: `2px solid ${borderColor}`,
+                    backgroundColor: settings?.header_color || "#1976d2",
+                    color: "#fff",
+                    width: "20%",
+                    textAlign: "center",
+                  }}
+                >
+                  Status
+                </th>
               </tr>
             </thead>
 
@@ -397,9 +438,10 @@ const CurriculumPanel = () => {
                     style={{
                       border: `2px solid ${borderColor}`,
                       textAlign: "left",
+                      paddingLeft: "8px",
                     }}
                   >
-                    {item.program_description} ({item.program_code})
+                    ({item.program_code}) - {item.program_description} {item.major}
                   </td>
                   <td
                     style={{
@@ -430,6 +472,7 @@ const CurriculumPanel = () => {
               ))}
             </tbody>
           </table>
+
         </div>
       </div>
 

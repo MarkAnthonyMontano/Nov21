@@ -2532,6 +2532,37 @@ app.get("/exam_schedules_with_count/:yearId/:semesterId", async (req, res) => {
   }
 });
 
+// GET: interview schedules with applicant count, filtered by department if needed
+app.get("/interview_schedules_with_count/:yearId/:semesterId", async (req, res) => {
+  const { yearId, semesterId } = req.params;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        ies.schedule_id,
+        ies.day_description,
+        ies.building_description,
+        ies.room_description,
+        ies.start_time,
+        ies.end_time,
+        ies.interviewer,
+        ies.room_quota,
+        COUNT(ia.applicant_id) AS current_occupancy
+      FROM admission.interview_exam_schedule ies
+      LEFT JOIN admission.interview_applicants ia
+        ON ies.schedule_id = ia.schedule_id
+      GROUP BY ies.schedule_id
+      ORDER BY ies.day_description, ies.start_time
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Interview Schedule Error:", err);
+    res.status(500).send("Server error");
+  }
+});
+
+
 
 // 📌 Import Excel to person_status_table
 // 📌 Import Excel to person_status_table + log notifications
@@ -2939,7 +2970,10 @@ app.get("/api/person/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [rows] = await db.execute("SELECT * FROM person_table WHERE person_id = ?", [id]);
+    const [rows] = await db.execute(`
+      SELECT pt.*, ant.applicant_number FROM applicant_numbering_table AS ant
+        LEFT JOIN person_table AS pt ON ant.person_id = pt.person_id
+      WHERE pt.person_id = ?`, [id]);
 
     if (rows.length === 0) {
       return res.status(404).json({ error: "Person not found" });
@@ -4235,6 +4269,8 @@ app.post("/superadmin-get-student", async (req, res) => {
   const { search } = req.body;
 
   try {
+    const like = `%${search}%`;
+
     const [rows] = await db3.query(
       `SELECT ua.status, ua.email,
               pt.student_number, pt.first_name, pt.middle_name, pt.last_name, pt.birthOfDate
@@ -4242,14 +4278,17 @@ app.post("/superadmin-get-student", async (req, res) => {
        JOIN person_table pt ON ua.person_id = pt.person_id
        WHERE ua.role = 'student'
          AND (
-              pt.student_number = ? 
-              OR ua.email LIKE ? 
-              OR pt.first_name LIKE ? 
-              OR pt.last_name LIKE ? 
-              OR CONCAT(pt.first_name, ' ', pt.last_name) LIKE ?
+              pt.student_number LIKE ?
+              OR LOWER(ua.email) LIKE LOWER(?)
+              OR LOWER(pt.first_name) LIKE LOWER(?)
+              OR LOWER(pt.middle_name) LIKE LOWER(?)
+              OR LOWER(pt.last_name) LIKE LOWER(?)
+              OR LOWER(CONCAT(pt.first_name, ' ', pt.last_name)) LIKE LOWER(?)
+              OR LOWER(CONCAT(pt.last_name, ' ', pt.first_name)) LIKE LOWER(?)
+              OR LOWER(CONCAT(pt.first_name, ' ', pt.middle_name, ' ', pt.last_name)) LIKE LOWER(?)
          )
        LIMIT 1`,
-      [search, `%${search}%`, `%${search}%`, `%${search}%`, `%${search}%`]
+      [like, like, like, like, like, like, like, like]
     );
 
     if (!rows.length) {
@@ -4269,6 +4308,7 @@ app.post("/superadmin-get-student", async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 });
+
 
 // ---------------- Student: Update Status ----------------
 app.post("/superadmin-update-status-student", async (req, res) => {
@@ -7142,14 +7182,17 @@ app.delete("/delete_department/:id", async (req, res) => {
   }
 });
 
-// PROGRAM CREATION (UPDATED!)
+// -------------------- PROGRAM CREATION --------------------
 app.post("/program", async (req, res) => {
-  const { name, code } = req.body;
+  const { name, code, major } = req.body; // include major
 
-  const insertProgramQuery = "INSERT INTO program_table (program_description, program_code) VALUES (?, ?)";
+  const insertProgramQuery = `
+    INSERT INTO program_table (program_description, program_code, major) 
+    VALUES (?, ?, ?)
+  `;
 
   try {
-    const [result] = await db3.query(insertProgramQuery, [name, code]);
+    const [result] = await db3.query(insertProgramQuery, [name, code, major]);
     res.status(200).send({ message: "Program created successfully", result });
   } catch (err) {
     console.error("Error creating program:", err);
@@ -7157,7 +7200,7 @@ app.post("/program", async (req, res) => {
   }
 });
 
-// PROGRAM TABLE (UPDATED!)
+// -------------------- GET PROGRAMS --------------------
 app.get("/get_program", async (req, res) => {
   const programQuery = "SELECT * FROM program_table";
 
@@ -7170,18 +7213,22 @@ app.get("/get_program", async (req, res) => {
   }
 });
 
-// ✅ UPDATE PROGRAM
+// -------------------- UPDATE PROGRAM --------------------
 app.put("/program/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, code } = req.body;
+  const { name, code, major } = req.body; // include major
 
   const updateQuery = `
     UPDATE program_table 
-    SET program_description = ?, program_code = ?
-    WHERE program_id = ?`;
+    SET program_description = ?, program_code = ?, major = ?
+    WHERE program_id = ?
+  `;
 
   try {
-    await db3.query(updateQuery, [name, code, id]);
+    const [result] = await db3.query(updateQuery, [name, code, major, id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Program not found" });
+    }
     res.status(200).send({ message: "Program updated successfully" });
   } catch (err) {
     console.error("Error updating program:", err);
@@ -7189,14 +7236,17 @@ app.put("/program/:id", async (req, res) => {
   }
 });
 
-// ✅ DELETE PROGRAM
+// -------------------- DELETE PROGRAM --------------------
 app.delete("/program/:id", async (req, res) => {
   const { id } = req.params;
 
   const deleteQuery = "DELETE FROM program_table WHERE program_id = ?";
 
   try {
-    await db3.query(deleteQuery, [id]);
+    const [result] = await db3.query(deleteQuery, [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send({ message: "Program not found" });
+    }
     res.status(200).send({ message: "Program deleted successfully" });
   } catch (err) {
     console.error("Error deleting program:", err);
@@ -7205,20 +7255,22 @@ app.delete("/program/:id", async (req, res) => {
 });
 
 
-// UPDATE PROGRAM INFORMATION (SUPERADMIN)(UPDATED!)
+// -------------------- SUPERADMIN UPDATE PROGRAM --------------------
 app.put("/update_program/:id", async (req, res) => {
   const { id } = req.params;
-  const { name, code } = req.body;
+  const { name, code, major } = req.body; // include major
 
-  const updateQuery = "UPDATE program_table SET program_description = ?, program_code = ? WHERE id = ?";
+  const updateQuery = `
+    UPDATE program_table 
+    SET program_description = ?, program_code = ?, major = ?
+    WHERE id = ?
+  `;
 
   try {
-    const [result] = await db3.query(updateQuery, [name, code, id]);
-
+    const [result] = await db3.query(updateQuery, [name, code, major, id]);
     if (result.affectedRows === 0) {
       return res.status(404).send({ message: "Program not found" });
     }
-
     res.status(200).send({ message: "Program updated successfully" });
   } catch (err) {
     console.error("Error updating program:", err);
@@ -7226,7 +7278,7 @@ app.put("/update_program/:id", async (req, res) => {
   }
 });
 
-// DELETE PROGRAM (SUPERADMIN) (UPDATED!)
+// -------------------- SUPERADMIN DELETE PROGRAM --------------------
 app.delete("/delete_program/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -7237,7 +7289,6 @@ app.delete("/delete_program/:id", async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(404).send({ message: "Program not found" });
     }
-
     res.status(200).send({ message: "Program deleted successfully" });
   } catch (err) {
     console.error("Error deleting program:", err);
@@ -7379,8 +7430,10 @@ app.get("/prgram_tagging_list", async (req, res) => {
       pt.course_id,
       pt.year_level_id,
       pt.semester_id,
-      -- show readable labels
+      -- readable labels
       CONCAT(y.year_description, ' - ', p.program_description) AS curriculum_description,
+      p.program_code,
+      p.major, -- ✅ pull major from program_table
       co.course_code,
       co.course_description,
       yl.year_level_description,
@@ -8008,7 +8061,8 @@ app.get("/department_section", async (req, res) => {
   try {
     const query = `
       SELECT 
-        pt.program_code,  
+        pt.program_code,
+        pt.major,  
         yt.year_description,
         st.description AS section_description
       FROM dprtmnt_section_table dst
@@ -10559,43 +10613,63 @@ app.get("/get_active_school_years", async (req, res) => {
   }
 });
 
-// 09/06/2025 UPDATE
+// 09/06/2025 UPDATE - FIXED: search by EMAIL not student_number
 app.post("/forgot-password-student", async (req, res) => {
   try {
-    const { email } = req.body;
+    const { search } = req.body;
 
-    // 🔍 Check if student exists
+    if (!search) {
+      return res.status(400).json({ success: false, message: "Missing search value" });
+    }
+
+    const like = `%${search}%`;
+
+    // 🔍 Allow reset via: student_number, name, person email, or user_accounts email
     const [rows] = await db3.query(
-      `SELECT ua.email, p.campus
+      `SELECT ua.email
        FROM user_accounts ua
-       JOIN person_table p ON ua.person_id = p.person_id
-       WHERE ua.email = ?`,
-      [email]
+       JOIN person_table pt ON ua.person_id = pt.person_id
+       WHERE ua.role = 'student'
+         AND (
+            pt.student_number LIKE ?
+            OR ua.email LIKE ?
+            OR pt.emailAddress LIKE ?
+            OR pt.first_name LIKE ?
+            OR pt.middle_name LIKE ?
+            OR pt.last_name LIKE ?
+            OR CONCAT(pt.first_name, ' ', pt.last_name) LIKE ?
+         )
+       LIMIT 1`,
+      [like, like, like, like, like, like, like]
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ success: false, message: "Email not found." });
+      return res.status(404).json({ success: false, message: "Student not found." });
+    }
+
+    const email = rows[0].email;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "No valid email found for this student." });
     }
 
     // 🔹 Fetch short term from company settings
     const [settings] = await db.query("SELECT short_term FROM company_settings WHERE id = 1");
-    const shortTerm =
-      settings.length > 0 && settings[0].short_term ? settings[0].short_term : "Institution";
+    const shortTerm = settings[0]?.short_term || "Institution";
 
-    // 🔹 Generate random 8-character uppercase password (A–Z)
+    // 🔹 Generate new 8-letter password
     const newPassword = Array.from({ length: 8 }, () =>
       String.fromCharCode(Math.floor(Math.random() * 26) + 65)
     ).join("");
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // 🔹 Update student password in DB
+    // 🔹 Update student password
     await db3.query("UPDATE user_accounts SET password = ? WHERE email = ?", [
       hashedPassword,
       email,
     ]);
 
-    // 🔹 Configure email transport
+    // 🔹 Send email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -10604,7 +10678,6 @@ app.post("/forgot-password-student", async (req, res) => {
       },
     });
 
-    // 🔹 Send email with institutional short term
     await transporter.sendMail({
       from: `"${shortTerm} - Information System" <${process.env.EMAIL_USER}>`,
       to: email,
@@ -10614,13 +10687,15 @@ app.post("/forgot-password-student", async (req, res) => {
 
     res.json({
       success: true,
-      message: "Password reset successfully. Check your email for the new password.",
+      message: "Password reset successfully. Check email for the new password.",
     });
+
   } catch (error) {
-    console.error("Reset error (student):", error);
+    console.error("Reset error:", error);
     res.status(500).json({ success: false, message: "Internal server error." });
   }
 });
+
 
 
 /* Student Dashboard */
@@ -11564,6 +11639,7 @@ app.get("/api/interview_applicants/:applicantId", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 // 09/16/2025
 app.get("/api/student_number", async (req, res) => {
@@ -12717,7 +12793,9 @@ app.get("/api/student-person-data/:id", async (req, res) => {
 
   try {
     const [rows] = await db3.query(
-      `SELECT * FROM person_table WHERE person_id = ?`,
+      `SELECT snt.student_number, pt.* FROM student_numbering_table AS snt 
+      LEFT JOIN person_table AS pt ON snt.person_id = pt.person_id
+      WHERE pt.person_id = ?`,
       [id]
     );
 
@@ -13125,7 +13203,7 @@ app.get("/api/program_evaluation/:student_number", async (req, res) => {
 });
 
 app.get("/api/my_schedule/:prof_id", async (req, res) => {
-  const {prof_id} = req.params
+  const { prof_id } = req.params
   try {
 
     const sql = ` 
@@ -14759,6 +14837,24 @@ app.get("/api/all-persons", (req, res) => {
     res.json(result);
   });
 });
+
+app.get("/api/person/:id", (req, res) => {
+  const id = req.params.id;
+
+  const sql = `
+    SELECT p.*, a.applicant_number
+    FROM person_table p
+    LEFT JOIN applicant_numbering_table a
+    ON p.person_id = a.person_id
+    WHERE p.person_id = ?
+  `;
+
+  db.query(sql, [id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result[0]);
+  });
+});
+
 
 
 http.listen(5000, () => {

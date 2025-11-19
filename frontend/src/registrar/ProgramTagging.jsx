@@ -239,8 +239,6 @@ const ProgramTagging = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this tag?")) return;
-
     try {
       await axios.delete(`http://localhost:5000/program_tagging/${id}`);
       setSnackbar({
@@ -258,6 +256,7 @@ const ProgramTagging = () => {
       });
     }
   };
+
 
 
 
@@ -305,7 +304,7 @@ const ProgramTagging = () => {
               <option value="">Choose Curriculum</option>
               {curriculumList.map((curriculum) => (
                 <option key={curriculum.curriculum_id} value={curriculum.curriculum_id}>
-                  {curriculum.year_description} - {curriculum.program_description}
+                  {curriculum.year_description} - {curriculum.program_description} {curriculum.major}
                 </option>
               ))}
             </select>
@@ -442,8 +441,9 @@ const ProgramTagging = () => {
                   {taggedPrograms.map((program) => (
                     <tr key={program.program_tagging_id}>
                       <td style={{ ...styles.td, border: `2px solid ${borderColor}` }}>
-                        {program.curriculum_description}
+             {program.curriculum_description}     ({program.program_code})        {program.major}
                       </td>
+
                       <td style={{ ...styles.td, border: `2px solid ${borderColor}` }}>
                         {program.course_description}
                       </td>

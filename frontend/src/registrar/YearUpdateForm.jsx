@@ -128,22 +128,29 @@ const YearUpdateForm = () => {
       <hr style={{ border: "1px solid #ccc", width: "100%" }} />
       <br />
 
-      <table className="w-full border border-gray-300" style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}>
+      <table
+        className="w-full border border-gray-300"
+        style={{ border: `2px solid ${borderColor}`, textAlign: "center" }}
+      >
         <thead>
           <tr style={{ backgroundColor: settings?.header_color || "#1976d2", color: "#ffffff" }}>
-            <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Year</th>
-            <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Status</th>
-            <th className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>Action</th>
+            <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>Year</th>
+            <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>Status</th>
+            <th className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>Action</th>
           </tr>
         </thead>
         <tbody>
           {years.map((year) => (
             <tr key={year.year_id}>
-              <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>{year.year_description}</td>
-              <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>{year.status === 1 ? "Active" : "Inactive"}</td>
-              <td className="p-2 border" style={{ border: `2px solid ${borderColor}` }}>
+              <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>
+                {year.year_description}
+              </td>
+              <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>
+                {year.status === 1 ? "Active" : "Inactive"}
+              </td>
+              <td className="p-2 border" style={{ border: `2px solid ${borderColor}`, width: "33.33%" }}>
                 <button
-                  className={`px-3 py-1 rounded text-white w-full ${year.status === 1 ? "bg-red-600" : "bg-green-600"}`}
+                  className={`px-3 py-1 rounded text-white w-[140px] ${year.status === 1 ? "bg-red-600" : "bg-green-600"}`}
                   onClick={() => toggleActivator(year.year_id, year.status)}
                 >
                   {year.status === 1 ? "Deactivate" : "Activate"}
@@ -153,6 +160,7 @@ const YearUpdateForm = () => {
           ))}
         </tbody>
       </table>
+
 
       <Snackbar
         open={snackbar.open}

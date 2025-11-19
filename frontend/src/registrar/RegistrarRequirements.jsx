@@ -45,104 +45,18 @@ const socket = io("http://localhost:5000");
 
 
 
-   const tabs = [
-        { label: "Admission Process For College", to: "/applicant_list", icon: <SchoolIcon fontSize="large" /> },
-        { label: "Applicant Form", to: "/registrar_dashboard1", icon: <AssignmentIcon fontSize="large" /> },
-        { label: "Student Requirements", to: "/registrar_requirements", icon: <AssignmentTurnedInIcon fontSize="large" /> },
-        { label: "Qualifying / Interview Room Assignment", to: "/assign_qualifying_interview_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-        { label: "Qualifying / Interview Schedule Management", to: "/assign_schedule_applicants_qualifying_interview", icon: <ScheduleIcon fontSize="large" /> },
-        { label: "Qualifying / Interviewer Applicant's List", to: "/qualifying_interviewer_applicant_list", icon: <PeopleIcon fontSize="large" /> },
-        { label: "Qualifying / Interview Exam Score", to: "/qualifying_interview_exam_scores", icon: <PersonSearchIcon fontSize="large" /> },
-        { label: "Student Numbering", to: "/student_numbering_per_college", icon: <DashboardIcon fontSize="large" /> },
-    ];
-
-
-const remarksOptions = [
-    "75% OF ATTENDANCE IS NEEDED FOR TRANSFEREE",
-    "Attachments were blurry",
-    "Birth Certificate with Sarical Surname",
-    "Card No Name/Details of the Applicant",
-    "Conflict of Lastname with birth certificate",
-    "Conflict of Lastname with birth certificate. Please Check",
-    "Conflict of name on the document submitted",
-    "Did not meet the requirements",
-    "Documents did not match with the Requirement",
-    "Duplicate Application",
-    "FORM 138 IS NOT COMPLETE",
-    "Good Moral is outdated must be 2022",
-    "GWA did not meet the Requirements",
-    "Have failed and incomplete grades",
-    "Have failing Grades",
-    "Kindly submit your vaccine card and good moral certificate to complete your evaluation",
-    "Kindly wait for verification of your credentials (ALS)",
-    "Multiple Accounts",
-    "NO COURSE APPLIED AND NO DOCUMENTS UPLOADED",
-    "NO DOCUMENT UPLOADED",
-    "NO FORM 138 UPLOADED",
-    "NO TOR UPLOADED",
-    "NOT QUALIFIED BASE ON YOUR STRAND",
-    "Please post your form 138 for approval",
-    "Please prepare your birth certificate reflecting the serrano surname",
-    "Please re-submit documents",
-    "Please resolve the lastname (conflict) appeared in your birth certificate",
-    "Please resubmit all documents. They are not clear",
-    "Please resubmit clear copy",
-    "Please resubmit the complete view of your document",
-    "Please submit clear copy of form 138",
-    "Please submit complete documents",
-    "Please submit first page of your TOR",
-    "Please submit full copy of report card with (front page, 1st, 2nd semester)",
-    "Please submit letter of intent or permit to study",
-    "Please submit NSO or PSA Birth certificate",
-    "Please submit NSO/PSA Birth certificate and vaccine card.",
-    "Please submit PSA, form 138, Vaccine card and Good moral",
-    "Please submit the full view of your f138 1st and 2nd semester front and back with name on both for verification",
-    "Please submit the required documents",
-    "Please submit vaccination card with name",
-    "Please upload Form 138, NSO/PSA Birth certificate and good moral",
-    "Please upload official Transcript of Records",
-    "Please upload the whole picture of your form 138",
-    "Please upload your form 138, NSO/PSA Birth certificate and vaccine card",
-    "Please upload your NSO/PSA",
-    "Please upload your photo",
-    "Please submit clear copy",
-    "Re-submit all copy of TOR w/ remarks: Graduated with a Degree of.... signed by key officials of the school and the registrar",
-    "Re-submit photo",
-    "REQUIRED TO SUBMIT COMPLETE GRADES FOR TRANSFEREE",
-    "Re-submit clear copy",
-    "Re-submit clear fill image of form 138",
-    "Re-submit form 138 for 2nd semester",
-    "Re-submit with complete name",
-    "SUBJECTS WERE ALL DROPPED FROM PREVIOUS SCHOOL",
-    "Submit good moral year 2022",
-    "Submit 1st and 2nd semester report card grade 12",
-    "Submit 1st and 2nd semester report card, together with front page",
-    "Submit form 138",
-    "Submit form 138 with name",
-    "Submit form 138 with name and submit photo",
-    "Submit Good Moral",
-    "Submit Good Moral and Vaccine Card",
-    "Submit Goof Moral year 2022",
-    "Submit the course descriptions of all the subjects taken from another school to the EARIST registrar for crediting.",
-    "Submit updated copy of your good moral",
-    "Submit updated Vaccine Card (1st and 2nd dose)",
-    "Submit your document",
-    "Teacher Certificate Program is a Graduate Program",
-    "Temporarily accepted. Please Submit PSA copy of birth certificate",
-    "Temporarily accepted. Submit original document upon enrollment.",
-    "The file cannot be opened",
-    "The form 138 document did not contain the name of the applicant",
-    "The uploaded did not match the name and gender of the applicant (Abela, Mary Jane)",
-    "The uploaded file did not match with the name of applicant (Shane Bamba)",
-    "The uploaded file did not match with the required document",
-    "The Vaccine Card you uploaded does not show your name.",
-    "TOR should be based in the new curriculum for transferee",
-    "Upload clear copy of PSA Birth Certificate in PDF. JPEG. format in full image",
-    "Upload your NSO/PSA Birth Certificate",
-    "Upload your Photo",
-    "You did not meet the grade required for the course",
-    "You have a lower grade"
+const tabs = [
+    { label: "Admission Process For College", to: "/applicant_list", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Applicant Form", to: "/registrar_dashboard1", icon: <AssignmentIcon fontSize="large" /> },
+    { label: "Student Requirements", to: "/registrar_requirements", icon: <AssignmentTurnedInIcon fontSize="large" /> },
+    { label: "Qualifying / Interview Room Assignment", to: "/assign_qualifying_interview_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+    { label: "Qualifying / Interview Schedule Management", to: "/assign_schedule_applicants_qualifying_interview", icon: <ScheduleIcon fontSize="large" /> },
+    { label: "Qualifying / Interviewer Applicant's List", to: "/qualifying_interviewer_applicant_list", icon: <PeopleIcon fontSize="large" /> },
+    { label: "Qualifying / Interview Exam Score", to: "/qualifying_interview_exam_scores", icon: <PersonSearchIcon fontSize="large" /> },
+    { label: "Student Numbering", to: "/student_numbering_per_college", icon: <DashboardIcon fontSize="large" /> },
 ];
+
+
 
 
 
@@ -710,97 +624,60 @@ const RegistrarRequirements = () => {
 
                 <TableCell sx={{ width: '20%', border: `2px solid ${borderColor}` }}>
                     {uploadId && editingRemarkId === uploadId ? (
-                        newRemarkMode[uploadId] ? (
-                            // free-text mode
-                            <TextField
-                                size="small"
-                                fullWidth
-                                autoFocus
-                                placeholder="Enter custom remark"
-                                value={remarksMap[uploadId] ?? ""}
-                                onChange={(e) =>
-                                    setRemarksMap((prev) => ({ ...prev, [uploadId]: e.target.value }))
+                        // 🔥 TEXTFIELD ONLY
+                        <TextField
+                        disabled
+                            size="small"
+                            fullWidth
+                            autoFocus
+                            placeholder="Enter remarks"
+                            value={remarksMap[uploadId] ?? uploaded?.remarks ?? ""}
+                            onChange={(e) =>
+                                setRemarksMap((prev) => ({ ...prev, [uploadId]: e.target.value }))
+                            }
+                            onBlur={async () => {
+                                const finalRemark = (remarksMap[uploadId] || "").trim();
+
+                                await axios.put(`http://localhost:5000/uploads/remarks/${uploadId}`, {
+                                    remarks: finalRemark,
+                                    status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
+                                    user_id: userID,
+                                });
+
+                                if (selectedPerson?.applicant_number) {
+                                    await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
                                 }
-                                onBlur={async () => {
+
+                                setEditingRemarkId(null);
+                            }}
+                            onKeyDown={async (e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
                                     const finalRemark = (remarksMap[uploadId] || "").trim();
-                                    if (finalRemark) {
-                                        await axios.put(`http://localhost:5000/uploads/remarks/${uploadId}`, {
-                                            remarks: finalRemark,
-                                            status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
-                                            user_id: userID,
-                                        });
-                                        if (selectedPerson?.applicant_number) {
-                                            await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
-                                        }
-                                    }
-                                    setNewRemarkMode((prev) => ({ ...prev, [uploadId]: false }));
-                                    setEditingRemarkId(null);
-                                }}
-                                onKeyDown={async (e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        const finalRemark = (remarksMap[uploadId] || "").trim();
-                                        if (finalRemark) {
-                                            await axios.put(`http://localhost:5000/uploads/remarks/${uploadId}`, {
-                                                remarks: finalRemark,
-                                                status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
-                                                user_id: userID,
-                                            });
-                                            if (selectedPerson?.applicant_number) {
-                                                await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
-                                            }
-                                        }
-                                        setNewRemarkMode((prev) => ({ ...prev, [uploadId]: false }));
-                                        setEditingRemarkId(null);
-                                    }
-                                }}
-                            />
-                        ) : (
-                            // preset dropdown mode
-                            <TextField
-                                disabled
-                                select
-                                size="small"
-                                fullWidth
-                                autoFocus
-                                value={remarksMap[uploadId] ?? uploaded?.remarks ?? ""}
-                                onChange={async (e) => {
-                                    const value = e.target.value;
-                                    if (value === "__NEW__") {
-                                        setNewRemarkMode((prev) => ({ ...prev, [uploadId]: true }));
-                                        return;
-                                    }
-                                    setRemarksMap((prev) => ({ ...prev, [uploadId]: value }));
+
                                     await axios.put(`http://localhost:5000/uploads/remarks/${uploadId}`, {
-                                        remarks: value, // ✅ use selected value directly
+                                        remarks: finalRemark,
                                         status: uploads.find((u) => u.upload_id === uploadId)?.status || "0",
                                         user_id: userID,
                                     });
+
                                     if (selectedPerson?.applicant_number) {
                                         await fetchUploadsByApplicantNumber(selectedPerson.applicant_number);
                                     }
+
                                     setEditingRemarkId(null);
-                                }}
-                                SelectProps={{ MenuProps: { PaperProps: { style: { maxHeight: 200 } } } }}
-                            >
-                                <MenuItem value=""><em>Select Remarks</em></MenuItem>
-                                {remarksOptions.map((option, index) => (
-                                    <MenuItem key={index} value={option}>
-                                        {option}
-                                    </MenuItem>
-                                ))}
-                                <MenuItem value="__NEW__">New Remarks</MenuItem>
-                            </TextField>
-                        )
+                                }
+                            }}
+                        />
                     ) : (
+                        // 📌 DISPLAY MODE with GRAY BORDER (click to edit)
                         <Box
                             onClick={() => {
                                 if (!uploadId) return;
                                 setEditingRemarkId(uploadId);
-                                setNewRemarkMode((prev) => ({ ...prev, [uploadId]: false }));
                                 setRemarksMap((prev) => ({
                                     ...prev,
-                                    [uploadId]: uploaded?.remarks ?? ""
+                                    [uploadId]: uploaded?.remarks ?? "",
                                 }));
                             }}
                             sx={{
@@ -811,12 +688,18 @@ const RegistrarRequirements = () => {
                                 display: "flex",
                                 alignItems: "center",
                                 px: 1,
+
+                                // ⭐ Added border here
+                                border: "1px solid #bdbdbd",
+                                borderRadius: "4px",
+                                backgroundColor: "#fafafa",
                             }}
                         >
                             {uploaded?.remarks || "Click to add remarks"}
                         </Box>
                     )}
                 </TableCell>
+
 
 
 
@@ -933,7 +816,7 @@ const RegistrarRequirements = () => {
                                 </Button>
 
                                 <Button
-                                disabled
+                                    disabled
                                     onClick={() => handleConfirmDelete(uploaded)}
                                     sx={{
                                         backgroundColor: uploaded.canDelete ? 'maroon' : 'lightgray',

@@ -205,18 +205,21 @@ const CoursePanel = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
       await axios.delete(`http://localhost:5000/delete_course/${id}`);
+
       setCourseList((prevList) =>
         prevList.filter((item) => item.course_id !== id)
       );
-      showSnack("Course deleted successfully!", "info");
+
+      // ✅ Use "success" here for green
+      showSnack("Course deleted successfully!", "success");
     } catch (err) {
       console.error(err);
       showSnack("Failed to delete course.", "error");
     }
   };
+
 
   const handleClose = (_, reason) => {
     if (reason === "clickaway") return;
@@ -429,14 +432,14 @@ const CoursePanel = () => {
             <table style={styles.table}>
               <thead>
                 <tr>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff"}}>ID</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Description</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Code</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Course Unit</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lab Unit</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lec Fees</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lab Fees</th>
-                  <th style={{ border: `2px solid ${borderColor}`,  backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Actions</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>ID</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Description</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Code</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Course Unit</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lab Unit</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lec Fees</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Lab Fees</th>
+                  <th style={{ border: `2px solid ${borderColor}`, backgroundColor: settings?.header_color || "#1976d2", color: "#fff" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -497,10 +500,15 @@ const CoursePanel = () => {
         onClose={handleClose}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
-        <Alert severity={snack.severity} onClose={handleClose} sx={{ width: "100%" }}>
+        <Alert
+          onClose={handleClose}
+          severity={snack.severity} // ✅ Use severity: "success" | "error" | "info" | "warning"
+          sx={{ width: "100%" }}
+        >
           {snack.message}
         </Alert>
       </Snackbar>
+
     </Box>
   );
 };
