@@ -83,16 +83,14 @@ const UserPageAccess = () => {
   const [employeeID, setEmployeeID] = useState("");
 
   useEffect(() => {
-
     const storedUser = localStorage.getItem("email");
     const storedRole = localStorage.getItem("role");
     const storedID = localStorage.getItem("person_id");
     const storedEmployeeID = localStorage.getItem("employee_id");
 
     if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
+      // setUserID(storedID);  <-- remove this line
       setUserRole(storedRole);
-      setUserID(storedID);
       setEmployeeID(storedEmployeeID);
 
       if (storedRole === "registrar") {
@@ -104,6 +102,7 @@ const UserPageAccess = () => {
       window.location.href = "/login";
     }
   }, []);
+
 
   const checkAccess = async (employeeID) => {
     try {
@@ -128,25 +127,25 @@ const UserPageAccess = () => {
 
   const mainColor = "#7E0000";
 
-  // 🔍 Automatically search when typing user ID (debounced)
+  const [searching, setSearching] = useState(false);
+
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (userID.trim() !== "") {
-        handleSearchUser();
+        setSearching(true);
+        handleSearchUser().finally(() => setSearching(false));
       } else {
         setUserFound(null);
         setPages([]);
       }
-    }, 600); // Delay search after typing stops
+    }, 600);
 
     return () => clearTimeout(delayDebounce);
   }, [userID]);
 
-  // 🔍 Fetch user page access
   const handleSearchUser = async () => {
     if (!userID) return;
 
-    setLoading(true);
     try {
       const { data: allPages } = await axios.get("http://localhost:5000/api/pages");
       const { data: accessRows } = await axios.get(`http://localhost:5000/api/page_access/${userID}`);
@@ -169,8 +168,6 @@ const UserPageAccess = () => {
       setUserFound(null);
       setPages([]);
       setSnackbar({ open: true, message: "User not found or error loading data", type: "error" });
-    } finally {
-      setLoading(false);
     }
   };
 

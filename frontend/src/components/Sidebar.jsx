@@ -116,6 +116,97 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
     }
   }, []);
 
+  const [userID, setUserID] = useState("");
+  const [userRole, setUserRole] = useState("");
+  const [employeeID, setEmployeeID] = useState("");
+  const [hasAccess, setHasAccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Access List Map
+  const [userAccessList, setUserAccessList] = useState({});
+
+  const pageId = 96; // ACCOUNT MANAGEMENT
+
+  // Apply settings
+  useEffect(() => {
+    if (!settings) return;
+
+    setTitleColor(settings.title_color || "#000000");
+    setBorderColor(settings.border_color || "#000000");
+    setMainButtonColor(settings.main_button_color || "#1976d2");
+  }, [settings]);
+
+  // Load user & access
+  useEffect(() => {
+    const email = localStorage.getItem("email");
+    const role = localStorage.getItem("role");
+    const id = localStorage.getItem("person_id");
+    const empID = localStorage.getItem("employee_id");
+
+    if (email && role && id && empID) {
+      setUserID(id);
+      setUserRole(role);
+      setEmployeeID(empID);
+
+      if (role === "registrar", "student", "applicant", "faculty") {
+        checkAccess(empID);
+        fetchUserAccessList(empID);
+      } else {
+        window.location.href = "/login";
+      }
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
+
+  const checkAccess = async (employeeID) => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `http://localhost:5000/api/page_access/${employeeID}/${pageId}`
+      );
+      setHasAccess(res.data?.page_privilege === 1);
+    } catch (err) {
+      setHasAccess(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ ACCESS LOADER
+  const fetchUserAccessList = async (employeeID) => {
+    try {
+      const { data } = await axios.get(
+        `http://localhost:5000/api/page_access/${employeeID}`
+      );
+
+      const accessMap = data.reduce((acc, item) => {
+        acc[item.page_id] = item.page_privilege === 1;
+        return acc;
+      }, {});
+
+      setUserAccessList(accessMap);
+    } catch (err) {
+      console.error("Access list error:", err);
+    }
+  };
+
+  const groupedMenu = [
+    {
+     
+      items: [
+        { title: "Admission Management", path: "/admission_dashboard", icon: Business, page_id: 92 },
+        { title: "Course Management", path: "/course_management", icon: LibraryBooks, page_id: 93 },
+        { title: "Department Management", path: "/department_dashboard", icon: Apartment, page_id: 94 },
+        { title: "System Management", path: "/system_dashboard", icon: Settings, page_id: 95 },
+        { title: "Account Management", path: "/account_dashboard", icon: People, page_id: 96 },
+        { title: "History Logs", path: "/history_logs", icon: HistoryOutlined, page_id: 97 },
+      ],
+    },
+  ];
+
+
+
   const Logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -135,8 +226,11 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
   };
 
 
+
+
   return (
     <div className="h-full w-enough hidden-print">
+
       <ul
         className="bg-white h-full p-3 px-5 text-maroon-500 w-full gap-2"
         style={{ borderRight: `5px solid ${borderColor}` }}
@@ -564,219 +658,57 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
               </li>
             </Link>
 
-            {/* Admission */}
-            <Link to="/admission_dashboard">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/admission_dashboard"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/admission_dashboard"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/admission_dashboard") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/admission_dashboard") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <Business />
-                <span className="pl-4 p-2 px-0 pointer-events-none">
-                  Admission Management
-                </span>
-              </li>
-            </Link>
+            {/* Grouped Menu Items */}
+            {groupedMenu.map((group, idx) => (
+              <div key={idx}>
+                <h6
+                  className="mt-2 mb-2 px-2"
+                  style={{ color: mainButtonColor, fontWeight: 600 }}
+                >
+                  {group.label}
+                </h6>
+                {group.items.map((item) => {
+                  // Check access before rendering
+                  if (!userAccessList[item.page_id]) return null;
 
-            {/* Courses */}
-            <Link to="/course_management">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/course_management"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/course_management"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/course_management") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/course_management") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <LibraryBooks />
-                <span className="pl-4 p-2 px-0 pointer-events-none">
-                  Courses Management
-                </span>
-              </li>
-            </Link>
+                  const isActive = location.pathname === item.path;
 
-            {/* Department */}
-            <Link to="/department_dashboard">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/department_dashboard"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/department_dashboard"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/department_dashboard") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/department_dashboard") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <Apartment />
-                <span className="pl-4 p-2 px-0 mr-2 pointer-events-none">
-                  Department Management
-                </span>
-              </li>
-            </Link>
-
-            {/* System Management */}
-            <Link to="/system_dashboard">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/system_dashboard"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/system_dashboard"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/system_dashboard") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/system_dashboard") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <Settings />
-                <span className="pl-4 p-2 px-0 pointer-events-none">
-                  System Management
-                </span>
-              </li>
-            </Link>
-
-            {/* Accounts */}
-            <Link to="/account_dashboard">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/account_dashboard"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/account_dashboard"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/account_dashboard") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/account_dashboard") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <People />
-                <span className="pl-4 p-2 px-0 pointer-events-none">Accounts</span>
-              </li>
-            </Link>
-
-            {/* History Logs */}
-            <Link to="/history_logs">
-              <li
-                className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
-                style={{
-                  backgroundColor:
-                    location.pathname === "/history_logs"
-                      ? mainButtonColor
-                      : "transparent",
-                  color:
-                    location.pathname === "/history_logs"
-                      ? "#ffffff"
-                      : "inherit",
-                  border: `2px solid ${borderColor}`,
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (location.pathname !== "/history_logs") {
-                    e.currentTarget.style.backgroundColor = mainButtonColor;
-                    e.currentTarget.style.color = "#ffffff";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (location.pathname !== "/history_logs") {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "inherit";
-                  }
-                }}
-              >
-                <HistoryOutlined />
-                <span className="pl-4 p-2 px-0 pointer-events-none">History Logs</span>
-              </li>
-            </Link>
+                  return (
+                    <Link to={item.path} key={item.page_id}>
+                      <li
+                        className="w-full flex items-center px-2 rounded m-2 mx-0 button-hover"
+                        style={{
+                          backgroundColor: isActive ? mainButtonColor : "transparent",
+                          color: isActive ? "#ffffff" : "inherit",
+                          border: `2px solid ${borderColor}`,
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = mainButtonColor;
+                            e.currentTarget.style.color = "#ffffff";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = "inherit";
+                          }
+                        }}
+                      >
+                        <item.icon />
+                        <span className="pl-4 p-2 px-0 pointer-events-none">
+                          {item.title}
+                        </span>
+                      </li>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </>
         )}
+
         {role === "applicant" && (
           <>
             {/* Dashboard */}
@@ -1113,7 +1045,7 @@ const SideBar = ({ setIsAuthenticated, profileImage, setProfileImage }) => {
               </li>
             </Link>
 
-          
+
 
             {/* Reset Password */}
             <Link to="/faculty_reset_password">

@@ -132,7 +132,7 @@ const ProgramPanel = () => {
   };
 
   const handleAddingProgram = async () => {
-    if (!program.name || !program.code || !program.major) {
+    if (!program.name || !program.code) {
       setSnackbar({
         open: true,
         message: "Please fill all fields",
@@ -166,7 +166,7 @@ const ProgramPanel = () => {
       console.error("Error saving program:", err);
       setSnackbar({
         open: true,
-        message: "Error saving program!",
+        message: err.response?.data?.message || "Error saving program!",
         severity: "error",
       });
     }

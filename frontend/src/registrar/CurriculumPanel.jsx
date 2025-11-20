@@ -168,7 +168,7 @@ const CurriculumPanel = () => {
       console.error(err);
       setSnackbar({
         open: true,
-        message: "Error adding curriculum!",
+        message: err.response?.data?.message || "Error adding curriculum!",
         severity: "error",
       });
     }

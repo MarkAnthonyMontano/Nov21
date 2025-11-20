@@ -158,8 +158,10 @@ const CoursePanel = () => {
       showSnack("Course successfully added!", "success");
       fetchCourses();
     } catch (err) {
-      console.error(err);
-      showSnack("Failed to add course.", "error");
+      showSnack(
+        err.response?.data?.message || "Failed to add course.",
+        "error"
+      );
     }
   };
 
@@ -199,8 +201,7 @@ const CoursePanel = () => {
         lab_value: "",
       });
     } catch (error) {
-      console.error("Update failed:", error);
-      showSnack("Failed to update course.", "error");
+      showSnack(error.response?.data?.message || "Failed to add course.", "error");
     }
   };
 

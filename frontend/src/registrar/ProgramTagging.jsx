@@ -222,7 +222,7 @@ const ProgramTagging = () => {
       console.error(err);
       setSnackbar({
         open: true,
-        message: "Error saving data.",
+        message: err.response?.data?.error || "Error saving data.",
         severity: "error",
       });
     }

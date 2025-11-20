@@ -7,7 +7,9 @@ import {
   Container,
   Box,
   Snackbar,
-  Alert
+  Alert,
+  TextField,
+  Modal,
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -45,6 +47,12 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [snack, setSnack] = useState({ open: false, message: '', severity: 'info' });
+  const [otp, setOtp] = useState("");
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [resendTimer, setResendTimer] = useState(180);
+  const [loadingOtp, setLoadingOtp] = useState(false);
+  const otpInputRef = useRef(null);
+  const [tempEmail, setTempEmail] = useState("");
   const navigate = useNavigate();
 
   const handleChanges = (e) => {
@@ -72,7 +80,7 @@ const Register = () => {
       return;
     }
 
-    // ✅ Check password match
+    // ✅ Password match check
     if (usersData.password !== confirmPassword) {
       setSnack({
         open: true,
@@ -83,36 +91,125 @@ const Register = () => {
     }
 
     setIsSubmitting(true);
-
     try {
-      const response = await axios.post("http://localhost:5000/register", usersData);
+      await axios.post("http://localhost:5000/request-otp", {
+        email: usersData.email,
+      });
 
-      if (!response.data.success) {
-        setSnack({
-          open: true,
-          message: response.data.message,
-          severity: "error"
-        });
-        setIsSubmitting(false);
-        return;
-      }
+      setTempEmail(usersData.email);
+      setShowOtpModal(true);
+      startResendTimer();
 
-      setUserData({ email: "", password: "" });
-      localStorage.setItem("person_id", response.data.person_id);
+      setSnack({
+        open: true,
+        message: "OTP sent to your email",
+        severity: "success",
+      });
 
-      setSnack({ open: true, message: "Registration Successful", severity: "success" });
-
-      setTimeout(() => navigate("/login_applicant"), 1000);
+      setIsSubmitting(false);
+      return;
 
     } catch (error) {
       setSnack({
         open: true,
-        message: error.response?.data?.message || "Registration failed",
-        severity: "error"
+        message: error.response?.data?.message || "Failed to send OTP",
+        severity: "error",
+      });
+
+      setIsSubmitting(false);
+      return;
+    }
+
+  };
+
+
+
+  const startResendTimer = () => {
+    setResendTimer(60);
+    const interval = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const resendOtp = async () => {
+    try {
+      setLoadingOtp(true);
+
+      await axios.post("http://localhost:5000/request-otp", {
+        email: tempEmail,
+      });
+
+      startResendTimer();
+      setSnack({ open: true, message: "OTP resent!", severity: "success" });
+    } catch (err) {
+      setSnack({
+        open: true,
+        message: err.response?.data?.message || "Failed to resend OTP",
+        severity: "error",
       });
     }
 
-    setIsSubmitting(false);
+    setLoadingOtp(false);
+  };
+
+  const verifyOtp = async () => {
+    setLoadingOtp(true);
+    try {
+      const response = await axios.post("http://localhost:5000/register", {
+        ...usersData,
+        otp,
+      });
+
+      if (!response.data.success) {
+        // Show error message if registration failed
+        setSnack({
+          open: true,
+          message: response.data.message,
+          severity: "error",
+        });
+        return;
+      }
+
+      // Success message: highlight "one-time registration"
+      setSnack({
+        open: true,
+        message: "🎉 Congratulations! You just created an account. Note: you can only register once with this email.",
+        severity: "success",
+      });
+
+      // Close OTP modal
+      setShowOtpModal(false);
+
+      // Delay navigation so user can read snackbar
+      setTimeout(() => navigate("/login_applicant"), 1500);
+
+    } catch (err) {
+      setSnack({
+        open: true,
+        message: err.response?.data?.message || "Something went wrong. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setLoadingOtp(false);
+    }
+  };
+
+  const handleKeyDownRegister = (e) => {
+    if (e.key === "Enter" && capVal && !isSubmitting) {
+      handleRegister();
+    }
+  };
+
+  const handleKeyDownOtp = (e) => {
+    if (e.key === "Enter" && !loadingOtp) {
+      verifyOtp();
+    }
   };
 
 
@@ -185,6 +282,7 @@ const Register = () => {
                   placeholder="Enter your email address"
                   value={usersData.email}
                   onChange={handleChanges}
+                  onKeyDown={handleKeyDownRegister}
                   style={{ paddingLeft: "2.5rem", border: `2px solid ${borderColor}` }}
                 />
                 <EmailIcon
@@ -207,6 +305,7 @@ const Register = () => {
                   placeholder="Enter your password"
                   value={usersData.password}
                   onChange={handleChanges}
+                  onKeyDown={handleKeyDownRegister}
                   required
                   style={{ paddingLeft: "2.5rem", border: `2px solid ${borderColor}` }}
                 />
@@ -246,8 +345,15 @@ const Register = () => {
                   placeholder="Re-enter your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  onKeyDown={handleKeyDownRegister}
                   required
-                  style={{ paddingLeft: "2.5rem", border: `2px solid ${borderColor}` }}
+                  disabled={!usersData.password} // ✅ Disabled until password is filled
+                  style={{
+                    paddingLeft: "2.5rem",
+                    border: `2px solid ${borderColor}`,
+                    backgroundColor: !usersData.password ? "#f0f0f0" : "white", // Optional: gray background when disabled
+                    cursor: !usersData.password ? "not-allowed" : "text",
+                  }}
                 />
                 <LockIcon
                   style={{
@@ -257,7 +363,6 @@ const Register = () => {
                     color: "rgba(0,0,0,0.4)"
                   }}
                 />
-
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -321,6 +426,99 @@ const Register = () => {
             </div>
           </div>
         </Container>
+
+        <Modal open={showOtpModal} onClose={() => setShowOtpModal(false)}>
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              bgcolor: "#fff",
+              p: 4,
+              border: "3px solid black",
+              borderRadius: "12px",
+              width: 350,
+              height: 350,
+              boxShadow: 24,
+              textAlign: "center",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={() => setShowOtpModal(false)}
+              style={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                backgroundColor: "#6D2323",
+                color: "white",
+                border: "none",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                cursor: "pointer",
+              }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{ color: "#6D2323", marginBottom: "10px", fontSize: "16px" }}>
+              Enter the 6-digit OTP<br />
+              <small style={{ color: "#555", fontWeight: "normal", fontSize: "16px" }}>
+                Note: This email can only be used to register once.
+              </small>
+            </h2>
+
+
+            <TextField
+              fullWidth
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter OTP"
+              inputRef={otpInputRef}
+              onKeyDown={handleKeyDownOtp}
+              inputProps={{
+                maxLength: 6,
+                style: { textAlign: "center", fontSize: "18px" },
+              }}
+              sx={{ mb: 2 }}
+            />
+
+            <button
+              onClick={verifyOtp}
+              disabled={loadingOtp}
+              style={{
+                width: "100%",
+                backgroundColor: mainButtonColor,
+                color: "white",
+                padding: "10px",
+                borderRadius: "6px",
+                border: "none",
+                fontWeight: "bold",
+              }}
+            >
+              {loadingOtp ? "Verifying..." : "Verify OTP"}
+            </button>
+
+            <button
+              onClick={resendOtp}
+              disabled={resendTimer > 0}
+              style={{
+                marginTop: "10px",
+                width: "100%",
+                padding: "10px",
+                borderRadius: "6px",
+                border: "2px solid black",
+                background: "white",
+                cursor: resendTimer > 0 ? "not-allowed" : "pointer",
+              }}
+            >
+              {resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend OTP"}
+            </button>
+          </Box>
+        </Modal>
+
 
         {/* Snackbar Notification */}
         <Snackbar

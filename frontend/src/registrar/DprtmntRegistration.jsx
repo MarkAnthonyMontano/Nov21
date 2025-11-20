@@ -15,6 +15,8 @@ import {
   Button,
   Box,
   IconButton,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import Unauthorized from "../components/Unauthorized";
@@ -71,6 +73,11 @@ const DepartmentRegistration = () => {
   const [userRole, setUserRole] = useState("");
   const [hasAccess, setHasAccess] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [snack, setSnack] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const pageId = 21;
 
   const [employeeID, setEmployeeID] = useState("");
@@ -133,17 +140,33 @@ const DepartmentRegistration = () => {
 
   const handleAddingDepartment = async () => {
     if (!department.dep_name || !department.dep_code) {
-      alert('Please fill all fields');
+      setSnack({
+        open: true,
+        message: "Please fill all fields",
+        severity: "warning",
+      });
       return;
     }
 
     try {
-      await axios.post('http://localhost:5000/department', department);
+      await axios.post("http://localhost:5000/department", department);
+
       fetchDepartment();
-      setDepartment({ dep_name: '', dep_code: '' });
+      setDepartment({ dep_name: "", dep_code: "" });
       setOpenModal(false);
+
+      setSnack({
+        open: true,
+        message: "Department added successfully!",
+        severity: "success",
+      });
+
     } catch (err) {
-      console.error(err);
+      setSnack({
+        open: true,
+        message: err.response?.data?.message || "Failed to add department",
+        severity: "error",
+      });
     }
   };
 
@@ -310,6 +333,20 @@ const DepartmentRegistration = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3000}
+        onClose={() => setSnack({ ...snack, open: false })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          severity={snack.severity}
+          onClose={() => setSnack({ ...snack, open: false })}
+          sx={{ width: "100%" }}
+        >
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

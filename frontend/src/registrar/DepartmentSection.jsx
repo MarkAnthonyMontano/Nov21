@@ -189,7 +189,7 @@ const DepartmentSection = () => {
       console.error(err);
       setSnackbar({
         open: true,
-        message: "Failed to add department section.",
+        message: err.response?.data?.message || "Failed to add department section.",
         severity: "error",
       });
     }
