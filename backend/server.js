@@ -1398,7 +1398,7 @@ app.delete("/requirements/:id", async (req, res) => {
 
 // 📌 Helper function to fetch actor info
 async function getActorInfo(user_person_id) {
-  let actorEmail = "earistmis@gmail.com";
+  let actorEmail = "montano.ma.bsinfotech@gmail.com";
   let actorName = "SYSTEM";
 
   if (user_person_id) {
@@ -1793,7 +1793,7 @@ app.put("/api/submitted-documents/:upload_id", async (req, res) => {
     const fullName = `${appInfo?.last_name || ""}, ${appInfo?.first_name || ""} ${appInfo?.middle_name?.charAt(0) || ""}.`;
 
     // 3️⃣ Actor info (FULL FORMAT identical to exam/save)
-    let actorEmail = "earistmis@gmail.com";
+    let actorEmail = "montano.ma.bsinfotech@gmail.com";
     let actorName = "SYSTEM";
 
     if (user_person_id) {
@@ -2641,7 +2641,7 @@ app.post("/api/qualifying_exam/import", async (req, res) => {
       "SELECT last_name, first_name, middle_name, email, employee_id FROM user_accounts WHERE role = 'registrar' LIMIT 1"
     );
     const registrar = registrarRows[0];
-    const registrarEmail = registrar?.email || "earistmis@gmail.com";
+    const registrarEmail = registrar?.email || "montano.ma.bsinfotech@gmail.com";
     const registrarFullName = registrar
       ? `${registrar.last_name}, ${registrar.first_name} ${registrar.middle_name || ""}`.trim()
       : "Registrar";
@@ -2775,7 +2775,7 @@ app.post("/cancel-unscheduled-applicants", async (req, res) => {
       // 3️⃣ Update admission_exam → status = Cancelled
       await db.query(
         `UPDATE admission_exam 
-         SET status = 'Cancelled'
+         SET status = 'CANCELLED'
          WHERE person_id = ?`,
         [a.person_id]
       );
@@ -3074,7 +3074,6 @@ app.post("/api/notify-submission", async (req, res) => {
       message,
       applicant_number,
       timestamp: new Date().toISOString(),
-      by: null // prevents "Unknown - System" from being shown
     });
 
 
@@ -5392,7 +5391,7 @@ WHERE proctor LIKE ?
       );
 
       // Get actor info
-      let actorEmail = "earistmis@gmail.com";
+      let actorEmail = "montano.ma.bsinfotech@gmail.com";
       let actorName = "SYSTEM";
       if (user_person_id) {
         const [actorRows] = await db3.query(
@@ -5404,7 +5403,7 @@ WHERE proctor LIKE ?
           const u = actorRows[0];
           const role = u.role?.toUpperCase() || "UNKNOWN";
           const empId = u.employee_id || "";
-          actorEmail = u.email || "earistmis@gmail.com";
+          actorEmail = u.email || "montano.ma.bsinfotech@gmail.com";
           actorName = `${role} (${empId}) - ${u.last_name}, ${u.first_name} ${u.middle_name}`.trim();
         }
       }
@@ -5512,7 +5511,7 @@ WHERE proctor LIKE ?
       );
 
       // 4️⃣ Fetch registrar (actor) info
-      let actorEmail = "earistmis@gmail.com";
+      let actorEmail = "montano.ma.bsinfotech@gmail.com";
       let actorName = "SYSTEM";
 
       if (user_person_id) {
@@ -5595,7 +5594,7 @@ WHERE proctor LIKE ?
       }
 
       // 2️⃣ Get actor info (email + role) from user_accounts in db3
-      let actorEmail = "earistmis@gmail.com";
+      let actorEmail = "montano.ma.bsinfotech@gmail.com";
       let actorFullName = "System";
 
       if (user_person_id) {
@@ -5733,7 +5732,7 @@ WHERE proctor LIKE ?
       );
 
       // 5️⃣ Get uploader (actor) info from user_accounts
-      let actorEmail = "earistmis@gmail.com";
+      let actorEmail = "montano.ma.bsinfotech@gmail.com";
       let actorName = "SYSTEM";
 
       if (loggedInUserId) {
@@ -6586,7 +6585,7 @@ io.on("connection", (socket) => {
       const actor = actorRows[0];
 
       // ✅ Format: ROLE (EMPLOYEE_ID) - LastName, FirstName MiddleName
-      const actorEmail = actor?.actor_email || "earistmis@gmail.com";
+      const actorEmail = actor?.actor_email || "montano.ma.bsinfotech@gmail.com";
       const actorName = actor
         ? `${actor.role.toUpperCase()} (${actor.employee_id || "N/A"}) - ${actor.last_name}, ${actor.first_name}${actor.middle_name ? " " + actor.middle_name : ""}`
         : "SYSTEM";
@@ -13424,7 +13423,7 @@ app.put("/api/submitted-medical/:upload_id", async (req, res) => {
     const message = `${action} (Applicant #${applicant_number} - ${fullName})`;
 
     // ✅ Full actor info (same as exam/save)
-    let actorEmail = "earistmis@gmail.com";
+    let actorEmail = "montano.ma.bsinfotech@gmail.com";
     let actorName = "SYSTEM";
 
     if (user_person_id) {

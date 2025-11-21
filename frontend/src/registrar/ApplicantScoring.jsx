@@ -690,6 +690,7 @@ th, td {
               <th style="width:7%">Math</th>
               <th style="width:7%">Abstract</th>
               <th style="width:10%">Final Rating</th>
+                 <th style="width:10%">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -716,6 +717,7 @@ th, td {
                   <td>${math}</td>
                   <td>${abstract}</td>
                   <td>${computedFinalRating.toFixed(2)}</td>
+                   <td>${person.status}</td>
                 </tr>`;
                 })
                 .join("")}
