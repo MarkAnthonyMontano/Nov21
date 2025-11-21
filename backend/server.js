@@ -2695,15 +2695,16 @@ app.get("/api-applicant-scoring", async (req, res) => {
           e.final_rating,
           (COALESCE(e.English,0) + COALESCE(e.Science,0) + COALESCE(e.Filipino,0) + COALESCE(e.Math,0) + COALESCE(e.Abstract,0))
         ) AS final_rating,
-		e.user,
-      	ue.email as registrar_user_email,
+        e.user,
+        e.status AS status,               -- ✅ ADDED HERE
+        ue.email as registrar_user_email,
 
         -- From person_status_table
         COALESCE(ps.exam_result, 0)        AS total_ave,
         COALESCE(ps.qualifying_result, 0)  AS qualifying_exam_score,
         COALESCE(ps.interview_result, 0)   AS qualifying_interview_score,
 
-        -- ✅ College Approval (interview_applicants.status)
+        -- College Approval
         ia.status AS college_approval_status
 
       FROM admission.person_table p
@@ -2711,11 +2712,11 @@ app.get("/api-applicant-scoring", async (req, res) => {
         ON p.person_id = a.person_id
       LEFT JOIN admission.admission_exam e
         ON p.person_id = e.person_id
-      LEFT JOIN enrollment.user_accounts ue   -- exam encoder
+      LEFT JOIN enrollment.user_accounts ue
         ON e.user = ue.person_id
       LEFT JOIN admission.person_status_table ps
         ON p.person_id = ps.person_id
-      LEFT JOIN admission.interview_applicants ia   -- 👈 add join here
+      LEFT JOIN admission.interview_applicants ia
         ON ia.applicant_id = a.applicant_number
 
       ORDER BY p.person_id ASC;
@@ -2725,6 +2726,101 @@ app.get("/api-applicant-scoring", async (req, res) => {
   } catch (err) {
     console.error("❌ Error fetching applicants with number:", err);
     res.status(500).send("Server error");
+  }
+});
+
+function chunkArray(arr, size) {
+  const result = [];
+  for (let i = 0; i < arr.length; i += size) {
+    result.push(arr.slice(i, size + i));
+  }
+  return result;
+}
+app.post("/cancel-unscheduled-applicants", async (req, res) => {
+  try {
+    // 1️⃣ Get the short_term from company_settings
+    const [[settings]] = await db.query(`
+      SELECT short_term FROM company_settings WHERE id = 1
+    `);
+    const shortTerm = settings?.short_term || "EARIST"; // fallback
+
+    // 2️⃣ Get all applicants with NO exam schedule
+    const [rows] = await db.query(`
+      SELECT 
+        ea.applicant_id,
+        ant.person_id,
+        pt.emailAddress AS email,
+        pt.first_name,
+        pt.last_name
+      FROM exam_applicants ea
+      JOIN applicant_numbering_table ant 
+        ON ant.applicant_number = ea.applicant_id
+      JOIN person_table pt 
+        ON pt.person_id = ant.person_id
+      WHERE ea.schedule_id IS NULL
+    `);
+
+    console.log("UNSCHEDULED:", rows);
+
+    if (rows.length === 0) {
+      return res.json({
+        success: true,
+        message: "No unscheduled applicants found."
+      });
+    }
+
+    let count = 0;
+
+    for (const a of rows) {
+      // 3️⃣ Update admission_exam → status = Cancelled
+      await db.query(
+        `UPDATE admission_exam 
+         SET status = 'Cancelled'
+         WHERE person_id = ?`,
+        [a.person_id]
+      );
+
+      // 4️⃣ Email contents with short_term applied
+      const mailOptions = {
+        from: `"${shortTerm} - Admission Office" <${process.env.EMAIL_USER}>`,
+        to: a.email,
+        subject: `${shortTerm} Admission — Application Cancelled`,
+        text:
+`
+Good day ${a.first_name} ${a.last_name},
+
+Thank you for applying to ${shortTerm}.
+
+After a thorough evaluation of your submitted documents, we regret to inform you that your application was not selected to proceed to the next stage of the admission process.
+
+We sincerely appreciate your interest in becoming part of ${shortTerm} and encourage you to explore opportunities that may best align with your academic goals.
+
+Thank you once again for applying.
+
+Sincerely,
+${shortTerm} - Admission Office
+        `
+      };
+
+      // 5️⃣ Send email
+      try {
+        await transporter.sendMail(mailOptions);
+        console.log("EMAIL SENT TO:", a.email);
+      } catch (emailErr) {
+        console.error("Email failed:", emailErr);
+      }
+
+      count++;
+    }
+
+    res.json({
+      success: true,
+      message: `${count} unscheduled applicants were cancelled and notified.`
+    });
+
+  } catch (error) {
+    console.error("❌ Error cancelling applicants:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -5356,10 +5452,19 @@ WHERE proctor LIKE ?
 
 
 
-
   app.post("/exam/save", async (req, res) => {
     try {
-      const { applicant_number, english, science, filipino, math, abstract, final_rating, user_person_id } = req.body;
+      const {
+        applicant_number,
+        english,
+        science,
+        filipino,
+        math,
+        abstract,
+        final_rating,
+        status,           // ⬅️ NEW
+        user_person_id
+      } = req.body;
 
       // 1️⃣ Find person_id of applicant
       const [rows] = await db.query(
@@ -5373,16 +5478,16 @@ WHERE proctor LIKE ?
 
       // 2️⃣ Fetch old exam data
       const [oldRows] = await db.query(
-        "SELECT English, Science, Filipino, Math, Abstract FROM admission_exam WHERE person_id = ?",
+        "SELECT English, Science, Filipino, Math, Abstract, status FROM admission_exam WHERE person_id = ?",
         [personId]
       );
       const oldData = oldRows[0] || null;
 
-      // 3️⃣ Insert or update scores
+      // 3️⃣ Insert or update scores + STATUS
       await db.query(
         `INSERT INTO admission_exam 
-        (person_id, English, Science, Filipino, Math, Abstract, final_rating, user, date_created)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        (person_id, English, Science, Filipino, Math, Abstract, final_rating, status, user, date_created)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
        ON DUPLICATE KEY UPDATE
          English = VALUES(English),
          Science = VALUES(Science),
@@ -5390,12 +5495,23 @@ WHERE proctor LIKE ?
          Math = VALUES(Math),
          Abstract = VALUES(Abstract),
          final_rating = VALUES(final_rating),
+         status = VALUES(status),
          user = VALUES(user),
          date_created = VALUES(date_created)`,
-        [personId, english, science, filipino, math, abstract, final_rating, user_person_id]
+        [
+          personId,
+          english,
+          science,
+          filipino,
+          math,
+          abstract,
+          final_rating,
+          status === "" ? null : status,  // ⬅️ NULL handling
+          user_person_id
+        ]
       );
 
-      // 4️⃣ Get actor info using person_id from user_accounts
+      // 4️⃣ Fetch registrar (actor) info
       let actorEmail = "earistmis@gmail.com";
       let actorName = "SYSTEM";
 
@@ -5409,26 +5525,19 @@ WHERE proctor LIKE ?
 
         if (actorRows.length > 0) {
           const u = actorRows[0];
-          const role = u.role?.toUpperCase() || "UNKNOWN";
-          const empId = u.employee_id || "";
-          const lname = u.last_name || "";
-          const fname = u.first_name || "";
-          const mname = u.middle_name || "";
-          const email = u.email || "";
-
-          actorEmail = email;
-          actorName = `${role} (${empId}) - ${lname}, ${fname} ${mname}`.trim();
+          actorEmail = u.email || actorEmail;
+          actorName = `${u.role?.toUpperCase() || ""} (${u.employee_id || ""}) - ${u.last_name || ""}, ${u.first_name || ""} ${u.middle_name || ""}`;
         }
       }
 
-      // 5️⃣ Check changes if updating existing record
+      // 5️⃣ Notifications: check for value changes
       if (oldData) {
         const subjects = [
           { key: "English", label: "English", newVal: english },
           { key: "Science", label: "Science", newVal: science },
           { key: "Filipino", label: "Filipino", newVal: filipino },
           { key: "Math", label: "Math", newVal: math },
-          { key: "Abstract", label: "Abstract", newVal: abstract },
+          { key: "Abstract", label: "Abstract", newVal: abstract }
         ];
 
         for (const subj of subjects) {
@@ -5461,12 +5570,13 @@ WHERE proctor LIKE ?
         }
       }
 
-      res.json({ success: true, message: "Exam data saved!" });
+      res.json({ success: true, message: "Exam data saved including status!" });
     } catch (err) {
       console.error("❌ Save error:", err);
       res.status(500).json({ error: "Failed to save exam data" });
     }
   });
+
 
 
   // ======================= EMAIL NOTIFICATION LOGGER =======================
@@ -6704,6 +6814,8 @@ app.get("/exam_schedules", async (req, res) => {
     res.status(500).json({ error: "Database error" });
   }
 });
+
+
 io.on("connection", (socket) => {
   console.log("✅ Socket.IO client connected");
 
@@ -6999,7 +7111,7 @@ Please log in to your Applicant Form Dashboard, click on your Exam Permit, and p
 This printed permit must be presented to your proctor on the exam day to verify your eligibility.
 
 ⚠️ Important Reminders:
-- Arrive at least 30 minutes before your scheduled exam.  
+- Arrive at least 1 hour  before your scheduled exam.  
 - Bring your printed exam permit, a valid ID, your own pen, and all required documents.  
 - Wear a plain white t-shirt on the exam day.  
 
@@ -7426,8 +7538,8 @@ app.post("/curriculum", async (req, res) => {
 
   try {
     const [rows] = await db3.query('SELECT * FROM curriculum_table WHERE year_id = ? AND program_id = ?', [year_id, program_id])
-    if(rows.length > 0) {
-      return res.status(400).json({message: "This curriculum is already existed"});
+    if (rows.length > 0) {
+      return res.status(400).json({ message: "This curriculum is already existed" });
     }
     const sql = "INSERT INTO curriculum_table (year_id, program_id) VALUES (?, ?)";
     const [result] = await db3.query(sql, [year_id, program_id]);
@@ -7540,7 +7652,7 @@ app.put("/update_course/:id", async (req, res) => {
     if (rows.length > 0) {
       return res.status(400).json({ message: "The course is already exists" });
     }
-    
+
     const [result] = await db3.query(
       "UPDATE course_table SET course_code=?, course_description=?, course_unit=?, lab_unit=?, lec_value = ?, lab_value = ? WHERE course_id=?",
       [course_code, course_description, course_unit, lab_unit, lec_value, lab_value, id]
@@ -8234,10 +8346,6 @@ app.get("/section_table", async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error", details: err.message });
   }
 });
-
-// UPDATE SECTIONS (SUPERADMIN)
-
-// DELETE SECTIONS (SUPERADMIN)
 
 // ------------------------------ DEPARTMENT SECTION PANEL ------------------------------------ //
 

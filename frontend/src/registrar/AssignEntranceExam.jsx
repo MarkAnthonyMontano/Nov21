@@ -472,7 +472,7 @@ const AssignEntranceExam = () => {
                   size="medium"
                   value={proctor}
                   onChange={(e) => setProctor(e.target.value)}
-                  required
+          
                   placeholder="Enter Proctor Name"
                 />
               </Grid>

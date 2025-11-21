@@ -41,44 +41,44 @@ import KeyIcon from "@mui/icons-material/Key";
 
 
 const ApplicantScoring = () => {
-   const settings = useContext(SettingsContext);
+    const settings = useContext(SettingsContext);
 
-  const [titleColor, setTitleColor] = useState("#000000");
-  const [subtitleColor, setSubtitleColor] = useState("#555555");
-  const [borderColor, setBorderColor] = useState("#000000");
-  const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
-  const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
-  const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
+    const [titleColor, setTitleColor] = useState("#000000");
+    const [subtitleColor, setSubtitleColor] = useState("#555555");
+    const [borderColor, setBorderColor] = useState("#000000");
+    const [mainButtonColor, setMainButtonColor] = useState("#1976d2");
+    const [subButtonColor, setSubButtonColor] = useState("#ffffff");   // ✅ NEW
+    const [stepperColor, setStepperColor] = useState("#000000");       // ✅ NEW
 
-  const [fetchedLogo, setFetchedLogo] = useState(null);
-  const [companyName, setCompanyName] = useState("");
-  const [shortTerm, setShortTerm] = useState("");
-  const [campusAddress, setCampusAddress] = useState("");
+    const [fetchedLogo, setFetchedLogo] = useState(null);
+    const [companyName, setCompanyName] = useState("");
+    const [shortTerm, setShortTerm] = useState("");
+    const [campusAddress, setCampusAddress] = useState("");
 
-  useEffect(() => {
-    if (!settings) return;
+    useEffect(() => {
+        if (!settings) return;
 
-    // 🎨 Colors
-    if (settings.title_color) setTitleColor(settings.title_color);
-    if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
-    if (settings.border_color) setBorderColor(settings.border_color);
-    if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
-    if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
-    if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
+        // 🎨 Colors
+        if (settings.title_color) setTitleColor(settings.title_color);
+        if (settings.subtitle_color) setSubtitleColor(settings.subtitle_color);
+        if (settings.border_color) setBorderColor(settings.border_color);
+        if (settings.main_button_color) setMainButtonColor(settings.main_button_color);
+        if (settings.sub_button_color) setSubButtonColor(settings.sub_button_color);   // ✅ NEW
+        if (settings.stepper_color) setStepperColor(settings.stepper_color);           // ✅ NEW
 
-    // 🏫 Logo
-    if (settings.logo_url) {
-      setFetchedLogo(`http://localhost:5000${settings.logo_url}`);
-    } else {
-      setFetchedLogo(EaristLogo);
-    }
+        // 🏫 Logo
+        if (settings.logo_url) {
+            setFetchedLogo(`http://localhost:5000${settings.logo_url}`);
+        } else {
+            setFetchedLogo(EaristLogo);
+        }
 
-    // 🏷️ School Information
-    if (settings.company_name) setCompanyName(settings.company_name);
-    if (settings.short_term) setShortTerm(settings.short_term);
-    if (settings.campus_address) setCampusAddress(settings.campus_address);
+        // 🏷️ School Information
+        if (settings.company_name) setCompanyName(settings.company_name);
+        if (settings.short_term) setShortTerm(settings.short_term);
+        if (settings.campus_address) setCampusAddress(settings.campus_address);
 
-  }, [settings]);
+    }, [settings]);
 
     const words = companyName.trim().split(" ");
     const middle = Math.ceil(words.length / 2);
@@ -100,17 +100,17 @@ const ApplicantScoring = () => {
     };
 
     const tabs = [
-      { label: "Admission Process for Registrar", to: "/applicant_list_admin", icon: <SchoolIcon fontSize="large" /> },
-       { label: "Applicant Form", to: "/admin_dashboard1", icon: <DashboardIcon fontSize="large" /> },
-       { label: "Student Requirements", to: "/student_requirements", icon: <AssignmentIcon fontSize="large" /> },
-       { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-       { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-       { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-       { label: "Examination Profile", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-       { label: "Proctor's Applicant List", to: "/proctor_applicant_list", icon: <PeopleIcon fontSize="large" /> },
-       { label: "Entrance Examination Scores", to: "/applicant_scoring", icon: <FactCheckIcon fontSize="large" /> },
-   
-   
+        { label: "Admission Process for Registrar", to: "/applicant_list_admin", icon: <SchoolIcon fontSize="large" /> },
+        { label: "Applicant Form", to: "/admin_dashboard1", icon: <DashboardIcon fontSize="large" /> },
+        { label: "Student Requirements", to: "/student_requirements", icon: <AssignmentIcon fontSize="large" /> },
+        { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
+        { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+        { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
+        { label: "Examination Profile", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
+        { label: "Proctor's Applicant List", to: "/proctor_applicant_list", icon: <PeopleIcon fontSize="large" /> },
+        { label: "Entrance Examination Scores", to: "/applicant_scoring", icon: <FactCheckIcon fontSize="large" /> },
+
+
 
     ];
 
@@ -121,48 +121,48 @@ const ApplicantScoring = () => {
 
     const [employeeID, setEmployeeID] = useState("");
 
-  useEffect(() => {
+    useEffect(() => {
 
-    const storedUser = localStorage.getItem("email");
-    const storedRole = localStorage.getItem("role");
-    const storedID = localStorage.getItem("person_id");
-    const storedEmployeeID = localStorage.getItem("employee_id");
+        const storedUser = localStorage.getItem("email");
+        const storedRole = localStorage.getItem("role");
+        const storedID = localStorage.getItem("person_id");
+        const storedEmployeeID = localStorage.getItem("employee_id");
 
-    if (storedUser && storedRole && storedID) {
-      setUser(storedUser);
-      setUserRole(storedRole);
-      setUserID(storedID);
-      setEmployeeID(storedEmployeeID);
+        if (storedUser && storedRole && storedID) {
+            setUser(storedUser);
+            setUserRole(storedRole);
+            setUserID(storedID);
+            setEmployeeID(storedEmployeeID);
 
-      if (storedRole === "registrar") {
-        checkAccess(storedEmployeeID);
-      } else {
-        window.location.href = "/login";
-      }
-    } else {
-      window.location.href = "/login";
-    }
-  }, []);
+            if (storedRole === "registrar") {
+                checkAccess(storedEmployeeID);
+            } else {
+                window.location.href = "/login";
+            }
+        } else {
+            window.location.href = "/login";
+        }
+    }, []);
 
-  const checkAccess = async (employeeID) => {
-    try {
-      const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
-      if (response.data && response.data.page_privilege === 1) {
-        setHasAccess(true);
-      } else {
-        setHasAccess(false);
-      }
-    } catch (error) {
-      console.error('Error checking access:', error);
-      setHasAccess(false);
-      if (error.response && error.response.data.message) {
-        console.log(error.response.data.message);
-      } else {
-        console.log("An unexpected error occurred.");
-      }
-      setLoading(false);
-    }
-  };
+    const checkAccess = async (employeeID) => {
+        try {
+            const response = await axios.get(`http://localhost:5000/api/page_access/${employeeID}/${pageId}`);
+            if (response.data && response.data.page_privilege === 1) {
+                setHasAccess(true);
+            } else {
+                setHasAccess(false);
+            }
+        } catch (error) {
+            console.error('Error checking access:', error);
+            setHasAccess(false);
+            if (error.response && error.response.data.message) {
+                console.log(error.response.data.message);
+            } else {
+                console.log("An unexpected error occurred.");
+            }
+            setLoading(false);
+        }
+    };
 
 
 
@@ -496,6 +496,30 @@ const ApplicantScoring = () => {
         if (reason === 'clickaway') return;
         setSnack(prev => ({ ...prev, open: false }));
     };
+
+
+
+    const handleStatusChange = async (person, newStatus) => {
+        try {
+            await axios.post("http://localhost:5000/exam/save", {
+                applicant_number: person.applicant_number,
+                english: person.english,
+                science: person.science,
+                filipino: person.filipino,
+                math: person.math,
+                abstract: person.abstract,
+                final_rating: person.final_rating,
+                status: newStatus,
+                user_person_id: localStorage.getItem("person_id")
+            });
+
+            fetchApplicants();
+        } catch (err) {
+            console.error("Status update failed:", err);
+        }
+    };
+
+
 
 
 
@@ -862,7 +886,7 @@ th, td {
     return (
         <Box sx={{ height: 'calc(100vh - 150px)', overflowY: 'auto', pr: 1, }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h4" fontWeight="bold" sx={{color: titleColor}}>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: titleColor }}>
                     ENTRANCE EXAMINATION SCORING
                 </Typography>
 
@@ -922,7 +946,7 @@ th, td {
                             justifyContent: "center",
                             cursor: "pointer",
                             borderRadius: 2,
-                              border: `2px solid ${borderColor}`, 
+                            border: `2px solid ${borderColor}`,
                             backgroundColor: activeStep === index ? settings?.header_color || "#1976d2" : "#E8C999",
                             color: activeStep === index ? "#fff" : "#000",
                             boxShadow:
@@ -1450,7 +1474,7 @@ th, td {
                             </TableCell>
 
                             <TableCell sx={{ color: "white", textAlign: "center", width: "12%", py: 0.5, fontSize: "12px", border: `2px solid ${borderColor}` }}>
-                                User
+                                Status
                             </TableCell>
                         </TableRow>
                     </TableHead>
@@ -1617,8 +1641,7 @@ th, td {
                                     >
                                         {person.created_at}
                                     </TableCell>
-
-                                    {/* User */}
+                                    {/* Status Dropdown */}
                                     <TableCell
                                         sx={{
                                             color: "black",
@@ -1629,10 +1652,30 @@ th, td {
                                             fontSize: "12px",
                                         }}
                                     >
-                                        {person.registrar_user_email
-                                        ? person.registrar_user_email
-                                        : "N/A"}
+                                        <FormControl fullWidth size="small">
+                                            <Select
+                                                value={person.status === null ? "" : person.status}
+                                                displayEmpty
+                                                onChange={(e) => handleStatusChange(person, e.target.value)}
+                                                sx={{ fontSize: "15px" }}
+                                                renderValue={(selected) => {
+                                                    if (selected === "") {
+                                                        return <span style={{ color: "#888" }}>Select Status</span>;
+                                                    }
+                                                    return selected;
+                                                }}
+                                            >
+                                                <MenuItem value="">
+                                                    <em>Select Status</em>
+                                                </MenuItem>
+                                                <MenuItem value="PASSED">PASSED</MenuItem>
+                                                <MenuItem value="FAILED">FAILED</MenuItem>
+                                            </Select>
+
+                                        </FormControl>
                                     </TableCell>
+
+
 
                                 </TableRow>
                             );

@@ -185,7 +185,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
         fetchActiveSenders();
     }, [user, adminData.dprtmnt_id]);
 
-   const tabs = [
+    const tabs = [
         { label: "Admission Process For College", to: "/applicant_list", icon: <SchoolIcon fontSize="large" /> },
         { label: "Applicant Form", to: "/registrar_dashboard1", icon: <AssignmentIcon fontSize="large" /> },
         { label: "Student Requirements", to: "/registrar_requirements", icon: <AssignmentTurnedInIcon fontSize="large" /> },
@@ -412,62 +412,62 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
     // handleAssign40 (assign max up to room_quota)
     const handleAssign40 = () => {
-    if (!selectedSchedule) {
-        setSnack({ open: true, message: "Please select a schedule first.", severity: "warning" });
-        return;
-    }
-
-    const schedule = schedules.find(s => s.schedule_id == selectedSchedule);
-    if (!schedule) {
-        setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
-        return;
-    }
-
-    const currentCount = schedule.current_occupancy || 0;
-    const maxSlots = schedule.room_quota || 40;
-    const availableSlots = maxSlots - currentCount;
-
-    if (availableSlots <= 0) {
-        setSnack({ open: true, message: `This schedule is already full (${maxSlots} applicants).`, severity: "error" });
-        return;
-    }
-
-    // ✅ Filter all unassigned applicants first
-    const filteredPersons = currentPersons.filter(a => a.schedule_id == null);
-
-    if (filteredPersons.length === 0) {
-        setSnack({ open: true, message: "No unassigned applicants available.", severity: "warning" });
-        return;
-    }
-
-    // ✅ Take only the ones that fit in available slots and map to applicant numbers
-    const unassigned = filteredPersons
-        .slice(0, availableSlots)
-        .map(a => a.applicant_number)
-        .filter(Boolean);
-
-    socket.emit("update_schedule_for_interview", { schedule_id: selectedSchedule, applicant_numbers: unassigned });
-
-    socket.once("update_schedule_result", (res) => {
-        if (res.success) {
-            setSnack({
-                open: true,
-                message: `Assigned: ${res.assigned?.length || 0}, Updated: ${res.updated?.length || 0}, Skipped: ${res.skipped?.length || 0}. Total unassigned applicants: ${filteredPersons.length}`,
-                severity: "success",
-            });
-            fetchAllApplicants();
-            setSchedules(prev =>
-                prev.map(s =>
-                    s.schedule_id == selectedSchedule
-                        ? { ...s, current_occupancy: s.current_occupancy + (res.assigned?.length || 0) }
-                        : s
-                )
-            );
-        } else {
-            setSnack({ open: true, message: res.error || "Failed to assign applicants.", severity: "error" });
+        if (!selectedSchedule) {
+            setSnack({ open: true, message: "Please select a schedule first.", severity: "warning" });
+            return;
         }
-    });
-};
+
+        const schedule = schedules.find(s => s.schedule_id == selectedSchedule);
+        if (!schedule) {
+            setSnack({ open: true, message: "Selected schedule not found.", severity: "error" });
+            return;
+        }
+
+        const currentCount = schedule.current_occupancy || 0;
+        const maxSlots = schedule.room_quota || 40;
+        const availableSlots = maxSlots - currentCount;
+
+        if (availableSlots <= 0) {
+            setSnack({ open: true, message: `This schedule is already full (${maxSlots} applicants).`, severity: "error" });
+            return;
+        }
+
+        // ✅ Filter all unassigned applicants first
+        const filteredPersons = currentPersons.filter(a => a.schedule_id == null);
+
+        if (filteredPersons.length === 0) {
+            setSnack({ open: true, message: "No unassigned applicants available.", severity: "warning" });
+            return;
+        }
+
+        // ✅ Take only the ones that fit in available slots and map to applicant numbers
+        const unassigned = filteredPersons
+            .slice(0, availableSlots)
+            .map(a => a.applicant_number)
+            .filter(Boolean);
+
+        socket.emit("update_schedule_for_interview", { schedule_id: selectedSchedule, applicant_numbers: unassigned });
+
+        socket.once("update_schedule_result", (res) => {
+            if (res.success) {
+                setSnack({
+                    open: true,
+                    message: `Assigned: ${res.assigned?.length || 0}, Updated: ${res.updated?.length || 0}, Skipped: ${res.skipped?.length || 0}. Total unassigned applicants: ${filteredPersons.length}`,
+                    severity: "success",
+                });
+                fetchAllApplicants();
+                setSchedules(prev =>
+                    prev.map(s =>
+                        s.schedule_id == selectedSchedule
+                            ? { ...s, current_occupancy: s.current_occupancy + (res.assigned?.length || 0) }
+                            : s
+                    )
+                );
+            } else {
+                setSnack({ open: true, message: res.error || "Failed to assign applicants.", severity: "error" });
+            }
+        });
+    };
 
 
     // handleUnassignImmediate
@@ -965,7 +965,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
                         fontSize: '36px',
                     }}
                 >
-                   QUALIFYING / INTERVIEW SCHEDULE MANAGEMENT
+                    QUALIFYING / INTERVIEW SCHEDULE MANAGEMENT
                 </Typography>
 
                 <TextField
@@ -1028,7 +1028,7 @@ const AssignScheduleToApplicantsInterviewer = () => {
                                     : "0px 2px 6px rgba(0,0,0,0.15)",
                             transition: "0.3s ease",
                             "&:hover": {
-                               backgroundColor: activeStep === index ? "#000" : "#f5d98f",
+                                backgroundColor: activeStep === index ? "#000" : "#f5d98f",
                             },
                         }}
                     >
@@ -1184,9 +1184,16 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
                 </Box>
                 {/* === ROW 1: Sort + Buttons === */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                    {/* LEFT SIDE: Sort By + Sort Order */}
-                    <Box display="flex" alignItems="center" gap={2}>
+                 <Box
+                       display="flex"
+                       justifyContent="space-between"
+                       alignItems="center"
+                       mb={2}
+                       gap={2}
+                     >
+             
+                       <Box display="flex" alignItems="center" gap={3}>
+             
                         {/* Sort By */}
                         <Box display="flex" alignItems="center" gap={1} marginLeft={-4}>
                             <Typography fontSize={13} sx={{ minWidth: "80px", textAlign: "right" }}>
@@ -1229,6 +1236,30 @@ const AssignScheduleToApplicantsInterviewer = () => {
 
                     {/* RIGHT SIDE: Action Buttons */}
                     <Box display="flex" gap={2} alignItems="center">
+                        <Button
+                            variant="contained"
+                            sx={{
+                                backgroundColor: "#8B0000",
+                                color: "white",
+                                minWidth: 150,
+                            }}
+                            onClick={async () => {
+                                if (!window.confirm("Are you sure? This will cancel ALL unscheduled applicants?")) {
+                                    return;
+                                }
+
+                                try {
+                                    const res = await axios.post("http://localhost:5000/cancel-unscheduled-applicants");
+                                    alert(res.data.message);
+                                } catch (err) {
+                                    console.error(err);
+                                    alert("Error cancelling applicants.");
+                                }
+                            }}
+                        >
+                            Reject All
+                        </Button>
+
                         <Button
                             variant="contained"
                             color="secondary"

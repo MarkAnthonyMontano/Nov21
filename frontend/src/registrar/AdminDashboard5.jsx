@@ -380,19 +380,7 @@ const AdminDashboard5 = () => {
 
 
   const [errors, setErrors] = useState({});
-  const isFormValid = () => {
-    let newErrors = {};
-    let isValid = true;
-
-    if (person.termsOfAgreement !== 1) {
-      newErrors.termsOfAgreement = true;
-      isValid = false;
-    }
-
-    setErrors(newErrors);
-    return isValid;
-  };
-
+ 
 
   const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
 

@@ -540,7 +540,7 @@ const Dashboard1 = (props) => {
 
   const isFormValid = () => {
     const requiredFields = [
-      "campus", "academicProgram", "classifiedAs", "applyingAs", "program", "program2", "program3",
+      "campus", "academicProgram", "classifiedAs", "applyingAs", "program",
       "yearLevel", "profile_img", "last_name", "first_name", "middle_name", "nickname",
       "height", "weight", "gender", "birthOfDate", "age", "birthPlace",
       "languageDialectSpoken", "citizenship", "religion", "civilStatus", "tribeEthnicGroup",
@@ -986,7 +986,7 @@ const Dashboard1 = (props) => {
                   labelId="campus-label"
                   id="campus-select"
                   name="campus"
-                 value={person.campus == null ? "" : String(person.campus)}
+                  value={person.campus == null ? "" : String(person.campus)}
                   label="Campus (Manila/Cavite)"
                   onChange={(e) => {
                     const val = e.target.value;
@@ -1125,7 +1125,33 @@ const Dashboard1 = (props) => {
                     </FormControl>
                   </Box>
 
-                
+                  {/* Year Level */}
+                  <div className="flex items-center mb-4 mt-2 gap-2">
+                    <label className="w-40 font-medium">Year Level:</label>
+                    <FormControl fullWidth size="small" required error={!!errors.yearLevel}>
+                      <InputLabel id="year-level-label">Year Level</InputLabel>
+                      <Select
+                        labelId="year-level-label"
+                        id="year-level-select"
+                        name="yearLevel"
+                        value={person.yearLevel || ""}
+                        label="Year Level"
+                        onChange={handleChange}
+                        onBlur={() => handleUpdate(person)}                >
+                        <MenuItem value=""><em>Select Year Level</em></MenuItem>
+                        <MenuItem value="First Year">First Year</MenuItem>
+                        <MenuItem value="Second Year">Second Year</MenuItem>
+                        <MenuItem value="Third Year">Third Year</MenuItem>
+                        <MenuItem value="Fourth Year">Fourth Year</MenuItem>
+                        <MenuItem value="Fifth Year">Fifth Year</MenuItem>
+                      </Select>
+                      {errors.yearLevel && (
+                        <FormHelperText>This field is required.</FormHelperText>
+                      )}
+                    </FormControl>
+                  </div>
+
+
                   {/* <Box display="flex" alignItems="center" gap={2} mb={1}>
                     <label className="w-40 font-medium">Program 2:</label>
                     <FormControl fullWidth size="small" required error={!!errors.program2}>
@@ -1180,7 +1206,7 @@ const Dashboard1 = (props) => {
                   textAlign: "center",
                   marginTop: "10px",
                   marginLeft: "35px",
-                  marginBottom: "20px",
+      
                   border: errors.profile_img ? "1px solid red" : "1px solid black",
                   width: "5.08cm",
                   height: "5.08cm",
@@ -1218,31 +1244,7 @@ const Dashboard1 = (props) => {
 
             </Box>
 
-            {/* Year Level */}
-            <div className="flex items-center mb-4 gap-2">
-              <label className="w-40 font-medium">Year Level:</label>
-              <FormControl fullWidth size="small" required error={!!errors.yearLevel}>
-                <InputLabel id="year-level-label">Year Level</InputLabel>
-                <Select
-                  labelId="year-level-label"
-                  id="year-level-select"
-                  name="yearLevel"
-                  value={person.yearLevel || ""}
-                  label="Year Level"
-                  onChange={handleChange}
-                  onBlur={() => handleUpdate(person)}                >
-                  <MenuItem value=""><em>Select Year Level</em></MenuItem>
-                  <MenuItem value="First Year">First Year</MenuItem>
-                  <MenuItem value="Second Year">Second Year</MenuItem>
-                  <MenuItem value="Third Year">Third Year</MenuItem>
-                  <MenuItem value="Fourth Year">Fourth Year</MenuItem>
-                  <MenuItem value="Fifth Year">Fifth Year</MenuItem>
-                </Select>
-                {errors.yearLevel && (
-                  <FormHelperText>This field is required.</FormHelperText>
-                )}
-              </FormControl>
-            </div>
+
 
             <Typography style={{ fontSize: "20px", color: "#6D2323", fontWeight: "bold" }}>Person Details:</Typography>
             <hr style={{ border: "1px solid #ccc", width: "100%" }} />

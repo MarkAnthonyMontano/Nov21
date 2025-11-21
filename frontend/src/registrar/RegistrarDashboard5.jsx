@@ -386,20 +386,7 @@ const RegistrarDashboard5 = () => {
     };
 
     const [errors, setErrors] = useState({});
-    const isFormValid = () => {
-        let newErrors = {};
-        let isValid = true;
-
-        if (person.termsOfAgreement !== 1) {
-            newErrors.termsOfAgreement = true;
-            isValid = false;
-        }
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
-
+   
     const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
 
     const handleStepClick = (index) => {
@@ -1067,12 +1054,6 @@ const RegistrarDashboard5 = () => {
                                 variant="contained"
                                 onClick={(e) => {
                                     handleUpdate(); // Save data
-
-                                    if (isFormValid()) {
-                                        navigate("/student_requirements"); // Proceed only if valid
-                                    } else {
-                                        alert("Please complete all required fields before submitting.");
-                                    }
                                 }}
                                 endIcon={
                                     <FolderIcon

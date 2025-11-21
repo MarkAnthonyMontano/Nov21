@@ -437,34 +437,7 @@ const checkAccess = async (employeeID) => {
 
     const [errors, setErrors] = useState({});
 
-    const isFormValid = () => {
-        const requiredFields = [
-            // Original fields
-            "schoolLevel", "schoolLastAttended", "schoolAddress", "courseProgram",
-            "honor", "generalAverage", "yearGraduated", "strand",
-
-            // Newly added fields
-            "schoolLevel1", "schoolLastAttended1", "schoolAddress1", "courseProgram1",
-            "honor1", "generalAverage1", "yearGraduated1"
-        ];
-
-        let newErrors = {};
-        let isValid = true;
-
-        requiredFields.forEach((field) => {
-            const value = person[field];
-            const stringValue = value?.toString().trim();
-
-            if (!stringValue) {
-                newErrors[field] = true;
-                isValid = false;
-            }
-        });
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
+    
     const [clickedSteps, setClickedSteps] = useState(Array(steps.length).fill(false));
 
     const handleStepClick = (index) => {

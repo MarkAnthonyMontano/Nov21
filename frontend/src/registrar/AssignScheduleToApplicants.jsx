@@ -87,17 +87,17 @@ const AssignScheduleToApplicants = () => {
   }, [settings]);
 
   const tabs = [
-      { label: "Admission Process for Registrar", to: "/applicant_list_admin", icon: <SchoolIcon fontSize="large" /> },
-       { label: "Applicant Form", to: "/admin_dashboard1", icon: <DashboardIcon fontSize="large" /> },
-       { label: "Student Requirements", to: "/student_requirements", icon: <AssignmentIcon fontSize="large" /> },
-       { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
-       { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
-       { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
-       { label: "Examination Profile", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
-       { label: "Proctor's Applicant List", to: "/proctor_applicant_list", icon: <PeopleIcon fontSize="large" /> },
-       { label: "Entrance Examination Scores", to: "/applicant_scoring", icon: <FactCheckIcon fontSize="large" /> },
-   
-   
+    { label: "Admission Process for Registrar", to: "/applicant_list_admin", icon: <SchoolIcon fontSize="large" /> },
+    { label: "Applicant Form", to: "/admin_dashboard1", icon: <DashboardIcon fontSize="large" /> },
+    { label: "Student Requirements", to: "/student_requirements", icon: <AssignmentIcon fontSize="large" /> },
+    { label: "Room Registration", to: "/room_registration", icon: <KeyIcon fontSize="large" /> },
+    { label: "Entrance Exam Room Assignment", to: "/assign_entrance_exam", icon: <MeetingRoomIcon fontSize="large" /> },
+    { label: "Entrance Exam Schedule Management", to: "/assign_schedule_applicant", icon: <ScheduleIcon fontSize="large" /> },
+    { label: "Examination Profile", to: "/registrar_examination_profile", icon: <PersonSearchIcon fontSize="large" /> },
+    { label: "Proctor's Applicant List", to: "/proctor_applicant_list", icon: <PeopleIcon fontSize="large" /> },
+    { label: "Entrance Examination Scores", to: "/applicant_scoring", icon: <FactCheckIcon fontSize="large" /> },
+
+
   ];
 
 
@@ -347,6 +347,8 @@ const AssignScheduleToApplicants = () => {
       }
     });
   };
+
+
 
 
   // handleAssign40 (assign max up to room_quota)
@@ -986,11 +988,19 @@ const AssignScheduleToApplicants = () => {
 
         </Box>
         {/* === ROW 1: Sort + Buttons === */}
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          {/* LEFT SIDE: Sort By + Sort Order */}
-          <Box display="flex" alignItems="center" gap={2}>
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+          gap={2}
+        >
+
+          {/* LEFT SIDE: Sort Controls */}
+          <Box display="flex" alignItems="center" gap={3}>
+
             {/* Sort By */}
-            <Box display="flex" alignItems="center" gap={1} marginLeft={-4}>
+            <Box display="flex" alignItems="center" gap={1}>
               <Typography fontSize={13} sx={{ minWidth: "80px", textAlign: "right" }}>
                 Sort By:
               </Typography>
@@ -1021,11 +1031,38 @@ const AssignScheduleToApplicants = () => {
                 </Select>
               </FormControl>
             </Box>
+
           </Box>
 
+          {/* RIGHT SIDE: ACTION BUTTONS */}
+          <Box display="flex" alignItems="center" gap={2}>
 
-          {/* RIGHT SIDE: Action Buttons */}
-          <Box display="flex" gap={2} alignItems="center">
+            {/* NEW Cancel Button BEFORE Assign Max */}
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#8B0000",
+                color: "white",
+                minWidth: 150,
+              }}
+              onClick={async () => {
+                if (!window.confirm("Are you sure? This will cancel ALL unscheduled applicants?")) {
+                  return;
+                }
+
+                try {
+                  const res = await axios.post("http://localhost:5000/cancel-unscheduled-applicants");
+                  alert(res.data.message);
+                } catch (err) {
+                  console.error(err);
+                  alert("Error cancelling applicants.");
+                }
+              }}
+            >
+              Reject All
+            </Button>
+
+            {/* Assign Max */}
             <Button
               variant="contained"
               color="secondary"
@@ -1035,8 +1072,7 @@ const AssignScheduleToApplicants = () => {
               Assign Max
             </Button>
 
-
-            {/* 🔥 New Custom Assign Input + Button */}
+            {/* Custom Input */}
             <TextField
               type="number"
               size="small"
@@ -1045,6 +1081,8 @@ const AssignScheduleToApplicants = () => {
               onChange={(e) => setCustomCount(Number(e.target.value))}
               sx={{ width: 120 }}
             />
+
+            {/* Assign Custom */}
             <Button
               variant="contained"
               color="warning"
@@ -1054,7 +1092,7 @@ const AssignScheduleToApplicants = () => {
               Assign Custom
             </Button>
 
-            {/* 🔥 New Unassign All Button */}
+            {/* Unassign All */}
             <Button
               variant="contained"
               color="error"
@@ -1064,6 +1102,7 @@ const AssignScheduleToApplicants = () => {
               Unassign All
             </Button>
 
+            {/* Send Emails */}
             <Button
               variant="contained"
               color="success"
@@ -1072,9 +1111,11 @@ const AssignScheduleToApplicants = () => {
             >
               Send Emails
             </Button>
+
           </Box>
 
         </Box>
+
 
         {/* === Filters Row: Department + Program + School Year + Semester === */}
         <Box display="flex" alignItems="center" gap={3} mb={2} flexWrap="wrap">
@@ -1456,6 +1497,7 @@ const AssignScheduleToApplicants = () => {
                           >
                             Unassign
                           </Button>
+
                           <Button
                             variant="contained"
                             color="primary"
@@ -1467,6 +1509,7 @@ const AssignScheduleToApplicants = () => {
                           >
                             Send Email
                           </Button>
+
                         </Box>
                       )}
                     </TableCell>

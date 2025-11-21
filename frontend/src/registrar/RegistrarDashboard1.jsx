@@ -941,62 +941,7 @@ const RegistrarDashboard1 = () => {
 
     const [errors, setErrors] = useState({});
 
-    const isFormValid = () => {
-        const requiredFields = [
-            "campus", "academicProgram", "classifiedAs", "applyingAs", "program", "program2", "program3",
-            "yearLevel", "profile_img", "last_name", "first_name", "middle_name", "nickname",
-            "height", "weight", "gender", "birthOfDate", "age", "birthPlace",
-            "languageDialectSpoken", "citizenship", "religion", "civilStatus", "tribeEthnicGroup",
-            "cellphoneNumber", "emailAddress",
-            "presentStreet", "presentZipCode", "presentRegion", "presentProvince",
-            "presentMunicipality", "presentBarangay", "presentDswdHouseholdNumber",
-            "permanentStreet", "permanentZipCode", "permanentRegion", "permanentProvince",
-            "permanentMunicipality", "permanentBarangay", "permanentDswdHouseholdNumber"
-        ];
-
-        let newErrors = {};
-        let isValid = true;
-
-        // Generic required fields
-        requiredFields.forEach((field) => {
-            const value = person[field];
-            const stringValue = value?.toString().trim();
-
-            if (!stringValue) {
-                newErrors[field] = true;
-                isValid = false;
-            }
-        });
-
-        // ✅ LRN Number: required only if N/A is NOT checked
-        if (!isLrnNA) {
-            const lrnValue = person.lrnNumber?.toString().trim();
-            if (!lrnValue) {
-                newErrors.lrnNumber = true;
-                isValid = false;
-            }
-        }
-
-        // ✅ PWD fields: required only if PWD checkbox is checked
-        if (person.pwdMember === 1) {
-            const pwdTypeValue = person.pwdType?.toString().trim();
-            const pwdIdValue = person.pwdId?.toString().trim();
-
-            if (!pwdTypeValue) {
-                newErrors.pwdType = true;
-                isValid = false;
-            }
-
-            if (!pwdIdValue) {
-                newErrors.pwdId = true;
-                isValid = false;
-            }
-        }
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
+   
 
 
 
